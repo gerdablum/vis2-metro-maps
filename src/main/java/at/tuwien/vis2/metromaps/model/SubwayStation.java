@@ -1,6 +1,5 @@
 package at.tuwien.vis2.metromaps.model;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -20,7 +19,12 @@ public class SubwayStation {
     }
 
     public float[] getCoordinates() {
-        return geometry.coordinates;
+
+        // we need to switch coordinates bc they are in wrong order :(
+        float[] coord = new float[2];
+        coord[0] = geometry.coordinates[1];
+        coord[1] = geometry.coordinates[0];
+        return coord;
     }
 
     public String getStationName() {
@@ -31,16 +35,8 @@ public class SubwayStation {
         return properties.railwayPosition;
     }
 
-    public Properties getProperties() {
-        return properties;
-    }
-
     public void setProperties(Properties properties) {
         this.properties = properties;
-    }
-
-    public Geometry getGeometry() {
-        return geometry;
     }
 
     public void setGeometry(Geometry geometry) {
@@ -48,11 +44,34 @@ public class SubwayStation {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonAutoDetect
     private static class Properties {
         private String name;
         @JsonProperty("uic_name")
         private String uicName;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getUicName() {
+            return uicName;
+        }
+
+        public void setUicName(String uicName) {
+            this.uicName = uicName;
+        }
+
+        public String getRailwayPosition() {
+            return railwayPosition;
+        }
+
+        public void setRailwayPosition(String railwayPosition) {
+            this.railwayPosition = railwayPosition;
+        }
 
         // this has to be string bc the data at station "Längenfeldgasse" looks like this:
         // "5.9 / 6.6"
@@ -62,10 +81,16 @@ public class SubwayStation {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonAutoDetect
     private static class Geometry {
         private float[] coordinates;
 
+        public float[] getCoordinates() {
+            return coordinates;
+        }
+
+        public void setCoordinates(float[] coordinates) {
+            this.coordinates = coordinates;
+        }
     }
 }
 
