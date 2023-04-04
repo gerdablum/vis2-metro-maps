@@ -76,7 +76,8 @@ public class M10Service implements MetroDataProvider {
 
     @Override
     public List<Station> getAllStationsForLine(String lineName) {
-        return null;
+        return getAllStations().stream()
+                .filter(station -> station.getLineNames().contains(lineName)).toList();
     }
 
     @Override

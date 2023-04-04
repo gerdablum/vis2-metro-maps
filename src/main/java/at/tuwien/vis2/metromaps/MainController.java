@@ -2,6 +2,7 @@ package at.tuwien.vis2.metromaps;
 
 
 import at.tuwien.vis2.metromaps.model.Edge;
+import at.tuwien.vis2.metromaps.model.LineSorter;
 import at.tuwien.vis2.metromaps.model.MetroDataProvider;
 import at.tuwien.vis2.metromaps.model.Station;
 import org.slf4j.Logger;
@@ -31,6 +32,10 @@ public class MainController {
         if (lineId == null) {
             return metroDataProvider.getAllEdges();
         } else {
+            List<Station> allStationsForLine = metroDataProvider.getAllStationsForLine(lineId);
+            List<Edge> allEdgesForLine = metroDataProvider.getAllEdgesForLine(lineId);
+            List<Station> orderedStations = LineSorter.getOrderedStations(allStationsForLine);
+
             return metroDataProvider.getAllEdgesForLine(lineId);
         }
     }
