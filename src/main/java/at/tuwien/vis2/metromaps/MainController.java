@@ -2,7 +2,6 @@ package at.tuwien.vis2.metromaps;
 
 
 import at.tuwien.vis2.metromaps.model.Edge;
-import at.tuwien.vis2.metromaps.model.LineSorter;
 import at.tuwien.vis2.metromaps.model.MetroDataProvider;
 import at.tuwien.vis2.metromaps.model.Station;
 import org.slf4j.Logger;
@@ -30,13 +29,12 @@ public class MainController {
     @GetMapping("/vienna/lines")
     public List<Edge> getLines(@RequestParam(required = false) String lineId) {
         if (lineId == null) {
-            return metroDataProvider.getAllEdges();
+            return metroDataProvider.getAllGeograficEdges();
         } else {
-            List<Station> allStationsForLine = metroDataProvider.getAllStationsForLine(lineId);
-            List<Edge> allEdgesForLine = metroDataProvider.getAllEdgesForLine(lineId);
-            List<Station> orderedStations = LineSorter.getOrderedStations(allStationsForLine);
+            List<Edge> allEdgesForLine = metroDataProvider.getAllGeograficLineEdges(lineId);
+            List<Edge> orderedEdges = metroDataProvider.getOrderedEdgesForLine(lineId);
 
-            return metroDataProvider.getAllEdgesForLine(lineId);
+            return metroDataProvider.getAllGeograficLineEdges(lineId);
         }
     }
 }

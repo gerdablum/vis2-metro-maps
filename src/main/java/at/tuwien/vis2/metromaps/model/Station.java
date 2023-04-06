@@ -4,6 +4,7 @@ import java.util.List;
 
 public class Station {
 
+    // actually the name is currently primary key, id is not really necessary at this point
     private String name;
     private String id;
     private double[] coordinates;
@@ -49,5 +50,21 @@ public class Station {
         return c * r;
     }
 
+    @Override
+    public int hashCode() {
+        return this.name.hashCode();
+    }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Station) {
+            return this.getName().equals(((Station) obj).getName());
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return this.name + " (" + this.getId() + ")";
+    }
 }

@@ -6,14 +6,13 @@ public interface MetroDataProvider {
 
     List<Station> getAllStations();
 
-    List<Edge> getAllEdges();
+    List<Edge> getAllGeograficEdges();
 
-    List<Station> getAllStationsForLine(String lineName);
+    List<Station> getAllStationsForLine(String lineId);
 
-    List<Edge> getLine(String lineName);
+    List<Edge> getAllGeograficLineEdges(String lineId);
 
-    Station getStationById(String id);
+    List<Station> getOrderedStationsForLine(String lineId);
 
-
-    List<Edge> getAllEdgesForLine(String lineId);
+    List<Edge> getOrderedEdgesForLine(String lineId);
 }
