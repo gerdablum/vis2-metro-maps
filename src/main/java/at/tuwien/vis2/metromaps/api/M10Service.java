@@ -75,7 +75,7 @@ public class M10Service implements MetroDataProvider {
     }
 
     @Override
-    public List<Edge> getAllGeograficLineEdges(String lineId) {
+    public List<Edge> getEdgesWithoutStationInformation(String lineId) {
         return allEdges.values().stream()
                 .filter(edge -> edge.getLineNames().contains(lineId))
                 .collect(Collectors.toList());

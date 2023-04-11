@@ -2,6 +2,7 @@ package at.tuwien.vis2.metromaps;
 
 
 import at.tuwien.vis2.metromaps.model.Edge;
+import at.tuwien.vis2.metromaps.model.GridGraph;
 import at.tuwien.vis2.metromaps.model.MetroDataProvider;
 import at.tuwien.vis2.metromaps.model.Station;
 import org.slf4j.Logger;
@@ -31,10 +32,15 @@ public class MainController {
         if (lineId == null) {
             return metroDataProvider.getAllGeograficEdges();
         } else {
-            List<Edge> allEdgesForLine = metroDataProvider.getAllGeograficLineEdges(lineId);
+            List<Edge> allEdgesForLine = metroDataProvider.getEdgesWithoutStationInformation(lineId);
             List<Edge> orderedEdges = metroDataProvider.getOrderedEdgesForLine(lineId);
 
-            return metroDataProvider.getAllGeograficLineEdges(lineId);
+            return metroDataProvider.getEdgesWithoutStationInformation(lineId);
         }
+    }
+
+    @GetMapping("/gridgraph")
+    public GridGraph getGridGraph() {
+        return new GridGraph(10, 10);
     }
 }

@@ -6,10 +6,13 @@ import org.jgrapht.traverse.DepthFirstIterator;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 public class InputGraph {
 
     private Graph<Station, Edge> inputGraph;
+    private double width;
+    private double height;
 
     public InputGraph() {
         this.inputGraph = GraphTypeBuilder.<Station, Edge> undirected().allowingMultipleEdges(false)
@@ -24,10 +27,46 @@ public class InputGraph {
         }
     }
 
-    public void getBoundingBox() {
-        // TODO calculate the bounding box of the input graph
-        // I suggest to get the node most upper left and node most lower right and then calculate the bounding box around them
-        // return height * width in meters
+    public void calcBoundingBox() {
+        Set<Station> stations = inputGraph.vertexSet();
+        List<double[]> latLons = stations.stream().map(Station::getCoordinates).toList();
+        double smallestLon = Integer.MAX_VALUE;
+        double smallestLat = Integer.MAX_VALUE;
+        double largestLon = 0;
+        double largestLat = 0;
+        for (double[] latLon:  latLons) {
+            var lat = latLon[0];
+            var lon = latLon[1];
+
+            if (lat < smallestLat) {
+                smallestLat = lat;
+            }
+            if (lat > largestLat) {
+                largestLat = lat;
+            }
+
+            if (lon < smallestLon) {
+                smallestLon = lon;
+            }
+
+            if (lon > largestLon) {
+                largestLon = lon;
+            }
+        }
+
+        double[] leftUpper = new double[]{smallestLat, smallestLon};
+        double[] leftLower = new double[]{smallestLat, largestLon};
+        double[] rightUpper = new double[]{largestLat, smallestLon};
+        this.width = Utils.getDistanceInKmTo(leftUpper, rightUpper);
+        this.height = Utils.getDistanceInKmTo(leftUpper, leftLower);
+    }
+
+    public double getWidth() {
+        return width;
+    }
+
+    public double getHeight() {
+        return height;
     }
 
     public void printToCommandLine() {

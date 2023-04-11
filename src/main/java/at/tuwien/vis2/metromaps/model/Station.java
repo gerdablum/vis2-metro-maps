@@ -2,7 +2,7 @@ package at.tuwien.vis2.metromaps.model;
 
 import java.util.List;
 
-public class Station {
+public class Station extends Vertex{
 
     // actually the name is currently primary key, id is not really necessary at this point
     private String name;

@@ -10,7 +10,7 @@ public interface MetroDataProvider {
 
     List<Station> getAllStationsForLine(String lineId);
 
-    List<Edge> getAllGeograficLineEdges(String lineId);
+    List<Edge> getEdgesWithoutStationInformation(String lineId);
 
     List<Station> getOrderedStationsForLine(String lineId);
 
