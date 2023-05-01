@@ -2,7 +2,6 @@ package at.tuwien.vis2.metromaps;
 
 
 import at.tuwien.vis2.metromaps.model.Edge;
-import at.tuwien.vis2.metromaps.model.GridGraph;
 import at.tuwien.vis2.metromaps.model.MetroDataProvider;
 import at.tuwien.vis2.metromaps.model.Station;
 import org.slf4j.Logger;
@@ -39,8 +38,8 @@ public class MainController {
         }
     }
 
-    @GetMapping("/gridgraph")
-    public GridGraph getGridGraph() {
-        return new GridGraph(10, 10);
-    }
+    //@GetMapping("/gridgraph")
+    //public GridGraph getGridGraph() {
+      //  return new GridGraph(10, 10);
+   // }
 }

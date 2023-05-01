@@ -12,6 +12,9 @@ public class InputGraph {
     private Graph<Station, Edge> inputGraph;
     private double width;
     private double height;
+    private double[] leftUpperCoordinates;
+    private double[] leftLowerCoordinates;
+    private double[] rightUpperCoordinates;
 
     public InputGraph() {
         this.inputGraph = GraphTypeBuilder.<Station, Edge> undirected().allowingMultipleEdges(false)
@@ -56,6 +59,9 @@ public class InputGraph {
         double[] leftUpper = new double[]{smallestLat, smallestLon};
         double[] leftLower = new double[]{smallestLat, largestLon};
         double[] rightUpper = new double[]{largestLat, smallestLon};
+        this.leftUpperCoordinates = leftUpper;
+        this.leftLowerCoordinates = leftLower;
+        this.rightUpperCoordinates = rightUpper;
         this.width = Utils.getDistanceInKmTo(leftUpper, rightUpper);
         this.height = Utils.getDistanceInKmTo(leftUpper, leftLower);
     }
@@ -66,6 +72,18 @@ public class InputGraph {
 
     public double getHeight() {
         return height;
+    }
+
+    public double[] getLeftUpperCoordinates() {
+        return leftUpperCoordinates;
+    }
+
+    public double[] getLeftLowerCoordinates() {
+        return leftLowerCoordinates;
+    }
+
+    public double[] getRightUpperCoordinates() {
+        return rightUpperCoordinates;
     }
 
     public int getLdegForStation(Station station) {
@@ -114,6 +132,8 @@ public class InputGraph {
                     .contains(Station.ProcessingState.DANGLING);
         }
         return sortedEdges;
+
+        // TODO sort graph also if it is not connected
     }
 
     private Station getStationWithHighestLdeg(boolean onlyTakeDanglings) {

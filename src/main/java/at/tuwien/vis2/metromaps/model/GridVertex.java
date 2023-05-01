@@ -5,11 +5,13 @@ public class GridVertex extends Vertex {
     private String name;
     private int indexX;
     private int indexY;
+    private double[] coordinates;
 
-    public GridVertex(String name, int indexX, int indexY) {
+    public GridVertex(String name, int indexX, int indexY, double[] coordinates) {
         this.name = name;
         this.indexX = indexX;
         this.indexY = indexY;
+        this.coordinates = coordinates;
     }
 
     public String getName() {
@@ -34,6 +36,14 @@ public class GridVertex extends Vertex {
 
     public void setIndexY(int indexY) {
         this.indexY = indexY;
+    }
+
+    public double[] getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(double[] coordinates) {
+        this.coordinates = coordinates;
     }
 
     @Override
