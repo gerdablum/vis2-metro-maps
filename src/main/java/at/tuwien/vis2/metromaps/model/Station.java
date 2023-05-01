@@ -2,19 +2,27 @@ package at.tuwien.vis2.metromaps.model;
 
 import java.util.List;
 
-public class Station extends Vertex{
+public class Station extends Vertex {
+
+    enum ProcessingState {
+        UNPROCESSED,
+        PROCESSED,
+        DANGLING
+    }
 
     // actually the name is currently primary key, id is not really necessary at this point
     private String name;
     private String id;
     private double[] coordinates;
     private List<String> lineNames;
+    private ProcessingState processingState;
 
     public Station(String name, String id, double[] coordinates, List<String> lineNames) {
         this.name = name;
         this.id = id;
         this.coordinates = coordinates;
         this.lineNames = lineNames;
+        this.processingState = ProcessingState.UNPROCESSED;
     }
 
     public String getName() {
@@ -31,6 +39,14 @@ public class Station extends Vertex{
 
     public List<String> getLineNames() {
         return lineNames;
+    }
+
+    public ProcessingState getProcessingState() {
+        return processingState;
+    }
+
+    public void setProcessingState(ProcessingState processingState) {
+        this.processingState = processingState;
     }
 
     public double getDistanceInKmTo(double[] coordinatesRef) {

@@ -4,9 +4,8 @@ import org.jgrapht.Graph;
 import org.jgrapht.graph.builder.GraphTypeBuilder;
 import org.jgrapht.traverse.DepthFirstIterator;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class InputGraph {
 
@@ -67,6 +66,67 @@ public class InputGraph {
 
     public double getHeight() {
         return height;
+    }
+
+    public int getLdegForStation(Station station) {
+        Set<Edge> edges = inputGraph.incomingEdgesOf(station);
+        int ldeg = 0;
+        for (Edge e: edges) {
+            ldeg += e.getLineNames().size();
+        }
+        return ldeg;
+    }
+
+    public List<Edge> sortEdges() {
+        boolean containsDanglingVertices = true;
+        List<Edge> sortedEdges = new ArrayList<>();
+        Station stationWithHighestLdeg = getStationWithHighestLdeg(false);
+        stationWithHighestLdeg.setProcessingState(Station.ProcessingState.DANGLING);
+        while (containsDanglingVertices) {
+
+            Station danglingStationWithHighestLdeg = getStationWithHighestLdeg(true);
+            Set<Edge> adjacentEdges = inputGraph.incomingEdgesOf(danglingStationWithHighestLdeg);
+            Set<Station> adjacentStationsSet = new HashSet<>();
+            for (Edge e : adjacentEdges) {
+                Station target = inputGraph.getEdgeTarget(e);
+                Station source = inputGraph.getEdgeSource(e);
+                adjacentStationsSet.add(source);
+                adjacentStationsSet.add(target);
+            }
+            // take all unprocessed nodes and sort after ldeg
+            List<Station> adjacentStations = adjacentStationsSet.stream()
+                            .filter(s -> s.getProcessingState() == Station.ProcessingState.UNPROCESSED).sorted((o1, o2) -> {
+                                int ldeg1 = getLdegForStation(o1);
+                                int ldeg2 = getLdegForStation(o2);
+                                return ldeg2 - ldeg1;
+                            }).toList();
+
+            // add the edge that connects highestStation with orderd adjacent unprocessed edge
+            adjacentStations.forEach(adjacentStation -> {
+                adjacentStation.setProcessingState(Station.ProcessingState.DANGLING);
+                sortedEdges.add(inputGraph.getEdge(danglingStationWithHighestLdeg, adjacentStation));
+            });
+            danglingStationWithHighestLdeg.setProcessingState(Station.ProcessingState.PROCESSED);
+
+            containsDanglingVertices = inputGraph.vertexSet().stream()
+                    .map(Station::getProcessingState)
+                    .toList()
+                    .contains(Station.ProcessingState.DANGLING);
+        }
+        return sortedEdges;
+    }
+
+    private Station getStationWithHighestLdeg(boolean onlyTakeDanglings) {
+        Set<Station> stations = inputGraph.vertexSet();
+        if (onlyTakeDanglings) {
+            stations = stations.stream().filter(station -> station.getProcessingState() == Station.ProcessingState.DANGLING).collect(Collectors.toSet());
+        }
+        return stations.stream()
+                .max((o1, o2) -> {
+            int ldeg1 = getLdegForStation(o1);
+            int ldeg2 = getLdegForStation(o2);
+            return ldeg1 - ldeg2;
+        }).get();
     }
 
     public void printToCommandLine() {
