@@ -1,6 +1,6 @@
 package at.tuwien.vis2.metromaps.api;
 
-import at.tuwien.vis2.metromaps.model.Edge;
+import at.tuwien.vis2.metromaps.model.MetroLineEdge;
 import at.tuwien.vis2.metromaps.model.MetroDataProvider;
 import at.tuwien.vis2.metromaps.model.Station;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +24,7 @@ public class M10Service implements MetroDataProvider {
 
     private ObjectMapper objectMapper;
     private Map<String, Station> allStations;
-    private Map<String, Edge> allEdges;
+    private Map<String, MetroLineEdge> allEdges;
 
     @Autowired
     public M10Service(@Value("classpath:exports/UBAHNOGD_UBAHNHALTOGD.json") Resource data) {
@@ -46,7 +46,7 @@ public class M10Service implements MetroDataProvider {
                     allStations.put(station.getName(), station);
                 }
                 else if("LineString".equals(feature.getType())) {
-                    Edge edge = new Edge(feature.getId(), feature.getCoordinates(), Collections.singletonList(String.valueOf(feature.getLineName())));
+                    MetroLineEdge edge = new MetroLineEdge(feature.getId(), feature.getCoordinates(), Collections.singletonList(String.valueOf(feature.getLineName())));
                     allEdges.put(edge.getId(), edge);
                 }
                 else {
@@ -64,7 +64,7 @@ public class M10Service implements MetroDataProvider {
     }
 
     @Override
-    public List<Edge> getAllGeograficEdges() {
+    public List<MetroLineEdge> getAllGeograficEdges() {
         return allEdges.values().stream().toList();
     }
 
@@ -75,7 +75,7 @@ public class M10Service implements MetroDataProvider {
     }
 
     @Override
-    public List<Edge> getEdgesWithoutStationInformation(String lineId) {
+    public List<MetroLineEdge> getEdgesWithoutStationInformation(String lineId) {
         return allEdges.values().stream()
                 .filter(edge -> edge.getLineNames().contains(lineId))
                 .collect(Collectors.toList());
@@ -88,13 +88,13 @@ public class M10Service implements MetroDataProvider {
     }
 
     @Override
-    public List<Edge> getOrderedEdgesForLine(String lineId) {
+    public List<MetroLineEdge> getOrderedEdgesForLine(String lineId) {
         var orderedStations = getOrderedStationsForLine(lineId);
-        var orderedEdges = new ArrayList<Edge>();
+        var orderedEdges = new ArrayList<MetroLineEdge>();
         for (int i = 0; i < orderedStations.size() -1; i++) {
             var currentStation = orderedStations.get(i);
             var nextStation = orderedStations.get(i+1);
-            Edge edge = new Edge(currentStation.getId()+"+"+nextStation.getId(), currentStation, nextStation,
+            MetroLineEdge edge = new MetroLineEdge(currentStation.getId()+"+"+nextStation.getId(), currentStation, nextStation,
                     new double[][]{currentStation.getCoordinates(), nextStation.getCoordinates()}, Collections.singletonList(lineId));
             orderedEdges.add(edge);
         }

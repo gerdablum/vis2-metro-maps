@@ -3,7 +3,7 @@ package at.tuwien.vis2.metromaps.model;
 import java.util.HashSet;
 import java.util.List;
 
-public class Edge {
+public class MetroLineEdge {
 
     private String id;
     private Station startStation;
@@ -14,7 +14,7 @@ public class Edge {
     private double[][] coordinates;
     private List<String> lineNames;
 
-    public Edge(String id, Station startStation, Station endStation, double[][] coordinates, List<String> lineNames) {
+    public MetroLineEdge(String id, Station startStation, Station endStation, double[][] coordinates, List<String> lineNames) {
         this.id = id;
         this.startStation = startStation;
         this.endStation = endStation;
@@ -22,7 +22,7 @@ public class Edge {
         this.lineNames = lineNames;
     }
 
-    public Edge(String id, double[][] coordinates, List<String> lineNames) {
+    public MetroLineEdge(String id, double[][] coordinates, List<String> lineNames) {
         this.id = id;
         this.coordinates = coordinates;
         this.lineNames = lineNames;
@@ -63,10 +63,10 @@ public class Edge {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Edge) {
-            boolean hasSameLineEdges = new HashSet<>(this.getLineNames()).containsAll(((Edge) obj).getLineNames());
+        if (obj instanceof MetroLineEdge) {
+            boolean hasSameLineEdges = new HashSet<>(this.getLineNames()).containsAll(((MetroLineEdge) obj).getLineNames());
             // TODO also check for equality for start == end && end == start
-            return hasSameLineEdges && (this.startStation.equals(((Edge) obj).getStartStation()) && this.endStation.equals(((Edge) obj).getEndStation()));
+            return hasSameLineEdges && (this.startStation.equals(((MetroLineEdge) obj).getStartStation()) && this.endStation.equals(((MetroLineEdge) obj).getEndStation()));
         }
         return false;
     }

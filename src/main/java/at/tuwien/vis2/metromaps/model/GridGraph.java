@@ -89,7 +89,7 @@ public class GridGraph {
         numberOfVerticesVertical = (int) (heightInputGraph / d);
     }
 
-    public void processInputEdge(Edge edgeFromInputGraph, Station sourceFromInputGraph, Station targetFromInputGraph) {
+    public void processInputEdge(MetroLineEdge edgeFromInputGraph, Station sourceFromInputGraph, Station targetFromInputGraph) {
 
         double[] sourcePosition = sourceFromInputGraph.getCoordinates();
         double[] targetPosition = targetFromInputGraph.getCoordinates();
@@ -154,11 +154,22 @@ public class GridGraph {
         Iterator<GridVertex> iter = new DepthFirstIterator<>(gridGraph);
         while (iter.hasNext()) {
             GridVertex vertex = iter.next();
-            System.out.println("Vertex " +vertex.getName() );
+            System.out.println("Vertex " + vertex.getName() );
         }
     }
 
-    public Graph<GridVertex, DefaultEdge> getGraph() {
-        return gridGraph;
-    }
+   public Set<GridVertex> getGridVertices() {
+        return  gridGraph.vertexSet();
+   }
+
+   public Set<GridEdge> getEdges() {
+        Set<GridEdge> gridEdges = new HashSet<>();
+        for(DefaultEdge defaultEdge: gridGraph.edgeSet()) {
+            GridVertex source = gridGraph.getEdgeSource(defaultEdge);
+            GridVertex target = gridGraph.getEdgeTarget(defaultEdge);
+            GridEdge edge = new GridEdge(source, target);
+            gridEdges.add(edge);
+        }
+        return gridEdges;
+   }
 }

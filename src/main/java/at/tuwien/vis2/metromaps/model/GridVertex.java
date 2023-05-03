@@ -1,6 +1,6 @@
 package at.tuwien.vis2.metromaps.model;
 
-public class GridVertex extends Vertex {
+public class GridVertex {
 
     private String name;
     private int indexX;

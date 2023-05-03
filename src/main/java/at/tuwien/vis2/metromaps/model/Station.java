@@ -2,7 +2,7 @@ package at.tuwien.vis2.metromaps.model;
 
 import java.util.List;
 
-public class Station extends Vertex {
+public class Station {
 
     enum ProcessingState {
         UNPROCESSED,

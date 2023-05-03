@@ -1,8 +1,5 @@
 package at.tuwien.vis2.metromaps.api;
 
-import at.tuwien.vis2.metromaps.model.Edge;
-import at.tuwien.vis2.metromaps.model.MetroDataProvider;
-import at.tuwien.vis2.metromaps.model.Station;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

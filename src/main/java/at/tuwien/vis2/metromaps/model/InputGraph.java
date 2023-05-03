@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public class InputGraph {
 
-    private Graph<Station, Edge> inputGraph;
+    private Graph<Station, MetroLineEdge> inputGraph;
     private double width;
     private double height;
     private double[] leftUpperCoordinates;
@@ -17,12 +17,12 @@ public class InputGraph {
     private double[] rightUpperCoordinates;
 
     public InputGraph() {
-        this.inputGraph = GraphTypeBuilder.<Station, Edge> undirected().allowingMultipleEdges(false)
-                .allowingSelfLoops(false).edgeClass(Edge.class).weighted(true).buildGraph();
+        this.inputGraph = GraphTypeBuilder.<Station, MetroLineEdge> undirected().allowingMultipleEdges(false)
+                .allowingSelfLoops(false).edgeClass(MetroLineEdge.class).weighted(true).buildGraph();
     }
 
-    public void addVertices(List<Edge> edges) {
-        for (Edge edge: edges) {
+    public void addVerticesFromEdges(List<MetroLineEdge> edges) {
+        for (MetroLineEdge edge: edges) {
             inputGraph.addVertex(edge.getStartStation());
             inputGraph.addVertex(edge.getEndStation());
             inputGraph.addEdge(edge.getStartStation(), edge.getEndStation(), edge);
@@ -87,25 +87,25 @@ public class InputGraph {
     }
 
     public int getLdegForStation(Station station) {
-        Set<Edge> edges = inputGraph.incomingEdgesOf(station);
+        Set<MetroLineEdge> edges = inputGraph.incomingEdgesOf(station);
         int ldeg = 0;
-        for (Edge e: edges) {
+        for (MetroLineEdge e: edges) {
             ldeg += e.getLineNames().size();
         }
         return ldeg;
     }
 
-    public List<Edge> sortEdges() {
+    public List<MetroLineEdge> sortEdges() {
         boolean containsDanglingVertices = true;
-        List<Edge> sortedEdges = new ArrayList<>();
+        List<MetroLineEdge> sortedEdges = new ArrayList<>();
         Station stationWithHighestLdeg = getStationWithHighestLdeg(false);
         stationWithHighestLdeg.setProcessingState(Station.ProcessingState.DANGLING);
         while (containsDanglingVertices) {
 
             Station danglingStationWithHighestLdeg = getStationWithHighestLdeg(true);
-            Set<Edge> adjacentEdges = inputGraph.incomingEdgesOf(danglingStationWithHighestLdeg);
+            Set<MetroLineEdge> adjacentEdges = inputGraph.incomingEdgesOf(danglingStationWithHighestLdeg);
             Set<Station> adjacentStationsSet = new HashSet<>();
-            for (Edge e : adjacentEdges) {
+            for (MetroLineEdge e : adjacentEdges) {
                 Station target = inputGraph.getEdgeTarget(e);
                 Station source = inputGraph.getEdgeSource(e);
                 adjacentStationsSet.add(source);

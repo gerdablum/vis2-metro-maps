@@ -1,17 +1,20 @@
 
 var map = L.map('map').setView([48.210033, 16.363449], 13);
 var stationMarker = [];
+var gridMarker = [];
 initMap();
 fetchData();
+fetchGrid();
 map.on("zoomend", function() {
   var zoom = map.getZoom();
   console.log(zoom);
   if (zoom > 12 && stationMarker != null) {
     stationMarker.forEach(a => a.addTo(map));
+    gridMarker.forEach(a => a.addTo(map));
   }
   if (zoom <= 12 && stationMarker != null) {
     stationMarker.forEach(a => map.removeLayer(a));
-    ;
+    gridMarker.forEach(a => map.removeLayer(a));
   }
 });
 
@@ -21,6 +24,20 @@ function initMap() {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
+}
+
+function fetchGrid() {
+    axios.get('/vienna/gridgraph')
+    .then(function (response) {
+        for (var gridNode of response.data.gridVertices) {
+            gridMarker.push(L.circleMarker(gridNode.coordinates));
+        }
+
+    })
+    .catch(function (error) {
+            // handle error
+            console.log(error);
+          })
 }
 
 
@@ -36,31 +53,32 @@ function fetchData() {
         // handle error
         console.log(error);
       })
-//
-//   axios.get('/vienna/lines?lineId=1')
-//        .then(function (response) {
-//          // handle success
-//          for (var node of response.data) {
-//              console.log(node)
-//              var polyline = L.polyline(node.coordinates, {color: 'red'}).addTo(map);
-//          }
-//        })
-//        .catch(function (error) {
-//          // handle error
-//          console.log(error);
-//        })
-//   axios.get('/vienna/lines?lineId=2')
-//       .then(function (response) {
-//         // handle success
-//         for (var node of response.data) {
-//             console.log(node)
-//             var polyline = L.polyline(node.coordinates, {color: 'purple'}).addTo(map);
-//         }
-//       })
-//       .catch(function (error) {
-//         // handle error
-//         console.log(error);
-//       })
+
+
+  axios.get('/vienna/lines?lineId=1')
+       .then(function (response) {
+         // handle success
+         for (var node of response.data) {
+             console.log(node)
+             var polyline = L.polyline(node.coordinates, {color: 'red'}).addTo(map);
+         }
+       })
+       .catch(function (error) {
+         // handle error
+         console.log(error);
+       })
+  axios.get('/vienna/lines?lineId=2')
+      .then(function (response) {
+        // handle success
+        for (var node of response.data) {
+            console.log(node)
+            var polyline = L.polyline(node.coordinates, {color: 'purple'}).addTo(map);
+        }
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      })
    axios.get('/vienna/lines?lineId=3')
          .then(function (response) {
             // handle success
@@ -73,28 +91,29 @@ function fetchData() {
             // handle error
             console.log(error);
           })
-//   axios.get('/vienna/lines?lineId=4')
-//            .then(function (response) {
-//               // handle success
-//               for (var node of response.data) {
-//                   console.log(node)
-//                   var polyline = L.polyline(node.coordinates, {color: 'green'}).addTo(map);
-//               }
-//             })
-//             .catch(function (error) {
-//               // handle error
-//               console.log(error);
-//             })
-//   axios.get('/vienna/lines?lineId=6')
-//               .then(function (response) {
-//                  // handle success
-//                  for (var node of response.data) {
-//                      console.log(node)
-//                      var polyline = L.polyline(node.coordinates, {color: 'brown'}).addTo(map);
-//                  }
-//                })
-//                .catch(function (error) {
-//                  // handle error
-//                  console.log(error);
-//                })
+  axios.get('/vienna/lines?lineId=4')
+           .then(function (response) {
+              // handle success
+              for (var node of response.data) {
+                  console.log(node)
+                  var polyline = L.polyline(node.coordinates, {color: 'green'}).addTo(map);
+              }
+            })
+            .catch(function (error) {
+              // handle error
+              console.log(error);
+            })
+  axios.get('/vienna/lines?lineId=6')
+              .then(function (response) {
+                 // handle success
+                 for (var node of response.data) {
+                     console.log(node)
+                     var polyline = L.polyline(node.coordinates, {color: 'brown'}).addTo(map);
+                 }
+               })
+               .catch(function (error) {
+                 // handle error
+                 console.log(error);
+               })
+
 }
