@@ -1,5 +1,6 @@
 package at.tuwien.vis2.metromaps.model;
 
+import at.tuwien.vis2.metromaps.api.M10Service;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
@@ -7,6 +8,8 @@ import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.builder.GraphTypeBuilder;
 import org.jgrapht.traverse.DepthFirstIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -20,6 +23,8 @@ public class GridGraph {
     private int numberOfVerticesHorizontal;
     private int numberOfVerticesVertical;
 
+    Logger logger = LoggerFactory.getLogger(GridGraph.class);
+
     public GridGraph(double widthInputGraph, double heightInputGraph, double[] leftUpper, double[] leftLower, double[] rightUpper) {
 
         calcSizeOfGridGraph(widthInputGraph, heightInputGraph);
@@ -30,16 +35,16 @@ public class GridGraph {
         double stepSizeLat = (rightUpper[0] - leftUpper[0]) / numberOfVerticesHorizontal;
         // add vertices
         double[] coordinates = leftUpper;
-        for (int y = 0; y <= numberOfVerticesVertical; y++) {
-            for (int x = 0; x <= numberOfVerticesHorizontal; x++) {
+        for (int x = 0; x <= numberOfVerticesHorizontal; x++) {
+            for (int y = 0; y <= numberOfVerticesVertical; y++) {
 
                 coordinates = new double[]{leftUpper[0] + stepSizeLat*x, leftUpper[1] + stepSizeLon*y};
-                gridGraph.addVertex(new GridVertex(x+""+y, x, y, coordinates));
+                gridGraph.addVertex(new GridVertex(x+","+y, x, y, coordinates));
             }
         }
         // add edges
-        for (int y = 0; y < numberOfVerticesVertical; y++) {
-            for (int x = 0; x <numberOfVerticesHorizontal; x++) {
+        for (int x = 0; x < numberOfVerticesHorizontal; x++) {
+            for (int y = 0; y <numberOfVerticesVertical; y++) {
 
                 int finalY = y;
                 int finalX = x;
@@ -70,14 +75,17 @@ public class GridGraph {
                     Optional<GridVertex> vertex10 = gridGraph.vertexSet().stream()
                             .filter(vertex -> vertex.getIndexY() == finalY-1 && vertex.getIndexX() == finalX-1).findFirst();
 
-                    vertex12.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
-                    vertex2.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v,  new DefaultEdge()));
-                    vertex3.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v,  new DefaultEdge()));
-                    vertex4.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v,  new DefaultEdge()));
-                    vertex6.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v,  new DefaultEdge()));
-                    vertex8.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v,  new DefaultEdge()));
-                    vertex9.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v,  new DefaultEdge()));
-                    vertex10.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v,  new DefaultEdge()));
+                    vertex12.ifPresent(v -> {
+                        gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge());
+                        logger.debug("Adding vertex from " + currentVertex.get().getName() + " to " + v.getName());
+                    });
+                    vertex2.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
+                    vertex3.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
+                    vertex4.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
+                    vertex6.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
+                    vertex8.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
+                    vertex9.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
+                    vertex10.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
                 }
             }
 

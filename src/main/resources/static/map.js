@@ -30,7 +30,8 @@ function fetchGrid() {
     axios.get('/vienna/gridgraph')
     .then(function (response) {
         for (var gridNode of response.data.gridVertices) {
-            gridMarker.push(L.circleMarker(gridNode.coordinates));
+        var text = gridNode.indexX + "," + gridNode.indexY + ", " + gridNode.coordinates[0] + gridNode.coordinates[1];
+            gridMarker.push(L.circleMarker(gridNode.coordinates).bindTooltip(text).openTooltip());
         }
 
     })
