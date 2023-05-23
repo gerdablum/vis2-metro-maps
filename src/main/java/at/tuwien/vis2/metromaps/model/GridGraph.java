@@ -130,6 +130,9 @@ public class GridGraph {
 
         // TODO marry the original source and target from input graph with the grid graph
         // TODO continue with 4.3
+        // update the whole grid: all sink edges (all taken edges from the ``shortest path`` variable have cost inf.
+        // all bend edges (edges in between ingoing and outgoing path of a vertex - smaller angle) have cost inf
+        // TODO update bend costs c180, c135, c90, c45
     }
 
     private List<DefaultEdge> getShortestPathBetweenTwoSets(Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates) {
