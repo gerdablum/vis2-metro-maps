@@ -36,7 +36,7 @@ function fetchGrid() {
         gridNode = [];
         for (var gridEdge of response.data.edges) {
              gridEdges.push(L.polyline([gridEdge.source.coordinates,
-             gridEdge.destination.coordinates], {color: 'grey'}));
+             gridEdge.destination.coordinates], {color: 'grey', opacity: 0.5, weight: 10}));
         }
         for (var gridNode of response.data.gridVertices) {
         var text = gridNode.name + ", " + gridNode.coordinates[0] + gridNode.coordinates[1];

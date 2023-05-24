@@ -46,7 +46,7 @@ class GridGraphTest {
         for (MetroLineEdge edge : inputGraph.sortEdges()) {
             List<GridEdge> gridEdges = graph.processInputEdge(edge, edge.getStartStation(), edge.getEndStation());
             for(GridEdge e: gridEdges) {
-                assertTrue(isRoutedEdgeSameAsGridVertices(graph, e));
+                assertTrue(isGridEdgeSameAsGridVertices(graph, e));
             }
         }
     }
@@ -59,12 +59,12 @@ class GridGraphTest {
         GridGraph graph = graphCalculator.getGridGraph();
         for (List<GridEdge> gridEdges : gridEdgesList) {
             for (GridEdge e : gridEdges) {
-                assertTrue(isRoutedEdgeSameAsGridVertices(graph, e));
+                assertTrue(isGridEdgeSameAsGridVertices(graph, e));
             }
         }
     }
 
-    private boolean isRoutedEdgeSameAsGridVertices(GridGraph g, GridEdge e) {
+    private boolean isGridEdgeSameAsGridVertices(GridGraph g, GridEdge e) {
         for (GridVertex v : g.getGridVertices()) {
             if (e.getSource().getCoordinates()[0] == v.getCoordinates()[0] &&
                     e.getSource().getCoordinates()[1] == v.getCoordinates()[1]) {

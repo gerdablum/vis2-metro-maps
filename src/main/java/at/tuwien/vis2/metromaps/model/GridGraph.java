@@ -17,7 +17,7 @@ public class GridGraph {
 
     private final Graph<GridVertex, DefaultEdge> gridGraph;
     private double d = 0.5; // threshold (in km) we would like to have between each station
-    private double r = 0.7; // distance between source and target candidates to match input edges onto grid
+    private double r = 0.8; // distance between source and target candidates to match input edges onto grid
     private double costM = 0.5;  // move penalty
     private double costH = 1; // hop cost of using a grid edge
     private int numberOfVerticesHorizontal;
