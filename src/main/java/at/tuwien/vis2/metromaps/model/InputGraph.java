@@ -56,9 +56,9 @@ public class InputGraph {
             }
         }
 
-        double[] leftUpper = new double[]{smallestLat, smallestLon};
-        double[] leftLower = new double[]{smallestLat, largestLon};
-        double[] rightUpper = new double[]{largestLat, smallestLon};
+        double[] leftUpper = new double[]{largestLat, smallestLon};
+        double[] leftLower = new double[]{smallestLat, smallestLon};
+        double[] rightUpper = new double[]{largestLat, largestLon};
         this.leftUpperCoordinates = leftUpper;
         this.leftLowerCoordinates = leftLower;
         this.rightUpperCoordinates = rightUpper;

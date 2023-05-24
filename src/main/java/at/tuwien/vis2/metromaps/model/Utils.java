@@ -15,7 +15,7 @@ public class Utils {
 
         double c = 2 * Math.asin(Math.sqrt(a));
         // Radius of earth in kilometers
-        double r = 6371;
+        double r = 6378.1;
         return c * r;
     }
 }

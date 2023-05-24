@@ -43,16 +43,7 @@ public class MainController {
 
     @GetMapping("/vienna/gridgraph")
     public GridGraph getGridGraph() {
-        InputGraph inputGraph = new InputGraph();
-        // TODO get this linenames from metroDataProvider
-        List<String> lineNamesInVienna = Arrays.asList("1", "2", "3", "4", "6");
-        for (String lineName: lineNamesInVienna) {
-            List<MetroLineEdge> orderedEdgesForLine = metroDataProvider.getOrderedEdgesForLine(lineName);
-            inputGraph.addEdgeAndSourceDestVertices(orderedEdgesForLine);
-        }
-        inputGraph.calcBoundingBox();
-        return new GridGraph(inputGraph.getWidth(), inputGraph.getHeight(), inputGraph.getLeftUpperCoordinates(),
-                inputGraph.getLeftLowerCoordinates(), inputGraph.getRightUpperCoordinates());
+        return octalinearGraphCalculator.getGridGraph();
     }
 
     @GetMapping("/vienna/octilinear")

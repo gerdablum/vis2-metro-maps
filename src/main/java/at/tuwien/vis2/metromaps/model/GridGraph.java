@@ -31,20 +31,23 @@ public class GridGraph {
 
         this.gridGraph = GraphTypeBuilder.<GridVertex, DefaultEdge> undirected().allowingMultipleEdges(false)
                 .allowingSelfLoops(false).edgeClass(DefaultEdge.class).weighted(true).buildGraph();
-        double stepSizeLon = (leftLower[1] - leftUpper[1]) / numberOfVerticesVertical;
-        double stepSizeLat = (rightUpper[0] - leftUpper[0]) / numberOfVerticesHorizontal;
+        double stepSizeLon = (rightUpper[1] - leftUpper[1]) / numberOfVerticesVertical;
+        double stepSizeLat = (leftUpper[0] - leftLower[0]) / numberOfVerticesHorizontal;
         // add vertices
         double[] coordinates = leftUpper;
-        for (int x = 0; x <= numberOfVerticesHorizontal; x++) {
-            for (int y = 0; y <= numberOfVerticesVertical; y++) {
+        for (int y = 0; y <= numberOfVerticesVertical; y++) {
+            for (int x = 0; x <= numberOfVerticesHorizontal; x++) {
 
-                coordinates = new double[]{leftUpper[0] + stepSizeLat*x, leftUpper[1] + stepSizeLon*y};
+                coordinates = new double[]{leftUpper[0] - stepSizeLat*x, leftUpper[1] + stepSizeLon*y};
                 gridGraph.addVertex(new GridVertex(x+","+y, x, y, coordinates));
+                if (coordinates[0] == 48.27751786569251 && coordinates[1] == 16.452139552735247) {
+                    logger.info("Alarm! Weird vertex inserted!");
+                }
             }
         }
         // add edges
-        for (int x = 0; x <= numberOfVerticesHorizontal; x++) {
-            for (int y = 0; y <=numberOfVerticesVertical; y++) {
+        for (int y = 0; y <= numberOfVerticesVertical; y++) {
+            for (int x = 0; x <numberOfVerticesHorizontal; x++) {
 
                 int finalY = y;
                 int finalX = x;
@@ -105,7 +108,9 @@ public class GridGraph {
             // sink and souce candidates according to set distance r
             double distanceSource = Utils.getDistanceInKmTo(sourcePosition, vertex.getCoordinates());
             double distanceTarget = Utils.getDistanceInKmTo(targetPosition, vertex.getCoordinates());
-
+            if (vertex.getCoordinates()[0] == 48.27751786569251 && vertex.getCoordinates()[1] == 16.452139552735247) {
+                logger.info("This weird coordinate outside the gridpgaph has appeared!!!!!!");
+            }
             // build voroni diagram to deal with overlapping sink and target candidates
             if (distanceSource < r || distanceTarget < r) {
                 if (distanceSource < distanceTarget) {
@@ -123,7 +128,7 @@ public class GridGraph {
                 }
             }
         });
-        logger.info("Processing route from " + sourceFromInputGraph.getName() + " to " + targetFromInputGraph.getName());
+        //logger.info("Processing route from " + sourceFromInputGraph.getName() + " to " + targetFromInputGraph.getName());
         List<DefaultEdge> shortestPath = getShortestPathBetweenTwoSets(sourceCandidates, targetCandidates);
 
         // TODO marry the original source and target from input graph with the grid graph
@@ -156,10 +161,14 @@ public class GridGraph {
                 }
             }
         }
+        if (shortestPath == null) {
+            logger.warn("No shortest path found!");
+            return new ArrayList<>();
+        }
         for (DefaultEdge e : shortestPath.getEdgeList()) {
             String msg = String.format("Routing path from %s to %s, source coordinates: %s, %s", gridGraph.getEdgeSource(e).getName(), gridGraph.getEdgeTarget(e).getName(),
                     gridGraph.getEdgeSource(e).getCoordinates()[0], gridGraph.getEdgeSource(e).getCoordinates()[1]);
-            logger.info(msg);
+            //logger.info(msg);
         }
         return shortestPath.getEdgeList();
     }
