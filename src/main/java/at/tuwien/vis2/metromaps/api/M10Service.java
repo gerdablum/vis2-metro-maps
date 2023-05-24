@@ -1,8 +1,8 @@
 package at.tuwien.vis2.metromaps.api;
 
-import at.tuwien.vis2.metromaps.model.MetroLineEdge;
+import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
 import at.tuwien.vis2.metromaps.model.MetroDataProvider;
-import at.tuwien.vis2.metromaps.model.Station;
+import at.tuwien.vis2.metromaps.model.input.InputStation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +23,8 @@ public class M10Service implements MetroDataProvider {
     private Resource data;
 
     private ObjectMapper objectMapper;
-    private Map<String, Station> allStations;
-    private Map<String, MetroLineEdge> allEdges;
+    private Map<String, InputStation> allStations;
+    private Map<String, InputLineEdge> allEdges;
 
     @Autowired
     public M10Service(@Value("classpath:exports/UBAHNOGD_UBAHNHALTOGD.json") Resource data) {
@@ -41,12 +41,12 @@ public class M10Service implements MetroDataProvider {
             M10Features subwayStations = objectMapper.readValue(data.getFile(), M10Features.class);
             for(M10Features.Feature feature : subwayStations.getFeatures()) {
                 if("Point".equals(feature.getType())) {
-                    Station station = new Station(feature.getStationName(), feature.getId(), feature.getCoordinates()[0],
+                    InputStation station = new InputStation(feature.getStationName(), feature.getId(), feature.getCoordinates()[0],
                             Arrays.asList(String.valueOf(feature.getLineName())));
                     allStations.put(station.getName(), station);
                 }
                 else if("LineString".equals(feature.getType())) {
-                    MetroLineEdge edge = new MetroLineEdge(feature.getId(), feature.getCoordinates(), Collections.singletonList(String.valueOf(feature.getLineName())));
+                    InputLineEdge edge = new InputLineEdge(feature.getId(), feature.getCoordinates(), Collections.singletonList(String.valueOf(feature.getLineName())));
                     allEdges.put(edge.getId(), edge);
                 }
                 else {
@@ -59,53 +59,53 @@ public class M10Service implements MetroDataProvider {
         }
     }
     @Override
-    public List<Station> getAllStations() {
+    public List<InputStation> getAllStations() {
         return allStations.values().stream().toList();
     }
 
     @Override
-    public List<MetroLineEdge> getAllGeograficEdges() {
+    public List<InputLineEdge> getAllGeograficEdges() {
         return allEdges.values().stream().toList();
     }
 
     @Override
-    public List<Station> getAllStationsForLine(String lineId) {
+    public List<InputStation> getAllStationsForLine(String lineId) {
         return getAllStations().stream()
                 .filter(station -> station.getLineNames().contains(lineId)).toList();
     }
 
     @Override
-    public List<MetroLineEdge> getEdgesWithoutStationInformation(String lineId) {
+    public List<InputLineEdge> getEdgesWithoutStationInformation(String lineId) {
         return allEdges.values().stream()
                 .filter(edge -> edge.getLineNames().contains(lineId))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<Station> getOrderedStationsForLine(String lineId) {
+    public List<InputStation> getOrderedStationsForLine(String lineId) {
         var allStationsForLine = getAllStationsForLine(lineId);
         return getOrderedStations(allStationsForLine);
     }
 
     @Override
-    public List<MetroLineEdge> getOrderedEdgesForLine(String lineId) {
+    public List<InputLineEdge> getOrderedEdgesForLine(String lineId) {
         var orderedStations = getOrderedStationsForLine(lineId);
-        var orderedEdges = new ArrayList<MetroLineEdge>();
+        var orderedEdges = new ArrayList<InputLineEdge>();
         for (int i = 0; i < orderedStations.size() -1; i++) {
             var currentStation = orderedStations.get(i);
             var nextStation = orderedStations.get(i+1);
-            MetroLineEdge edge = new MetroLineEdge(currentStation.getId()+"+"+nextStation.getId(), currentStation, nextStation,
+            InputLineEdge edge = new InputLineEdge(currentStation.getId()+"+"+nextStation.getId(), currentStation, nextStation,
                     new double[][]{currentStation.getCoordinates(), nextStation.getCoordinates()}, Collections.singletonList(lineId));
             orderedEdges.add(edge);
         }
         return orderedEdges;
     }
 
-    private List<Station> getOrderedStations(List<Station> stationsPerLine) {
+    private List<InputStation> getOrderedStations(List<InputStation> stationsPerLine) {
 
         var unprocessedStations = new ArrayList<>(stationsPerLine);
         var currentStation =  unprocessedStations.get(0);
-        LinkedList<Station> orderedStations = new LinkedList<>();
+        LinkedList<InputStation> orderedStations = new LinkedList<>();
         orderedStations.add(currentStation);
         float threshold = 2f;
         while (!unprocessedStations.isEmpty()) {
@@ -132,11 +132,11 @@ public class M10Service implements MetroDataProvider {
         return orderedStations;
     }
 
-    private Station getNearestStationWithinThreshold(List<Station> stations, float threshold, double[] coordinatesRef) {
+    private InputStation getNearestStationWithinThreshold(List<InputStation> stations, float threshold, double[] coordinatesRef) {
 
         double shortestDist = 1000;
-        Station nearestStation = null;
-        for (Station station : stations) {
+        InputStation nearestStation = null;
+        for (InputStation station : stations) {
             var distance = station.getDistanceInKmTo(coordinatesRef);
             if (distance < threshold && distance < shortestDist) {
                 shortestDist = distance;

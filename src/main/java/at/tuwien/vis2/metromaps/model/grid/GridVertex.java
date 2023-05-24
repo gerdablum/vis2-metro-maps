@@ -1,4 +1,4 @@
-package at.tuwien.vis2.metromaps.model;
+package at.tuwien.vis2.metromaps.model.grid;
 
 public class GridVertex {
 
@@ -6,6 +6,8 @@ public class GridVertex {
     private int indexX;
     private int indexY;
     private double[] coordinates;
+    private String stationName;
+    private boolean isTaken = false;
 
     public GridVertex(String name, int indexX, int indexY, double[] coordinates) {
         this.name = name;
@@ -40,6 +42,24 @@ public class GridVertex {
 
     public double[] getCoordinates() {
         return coordinates;
+    }
+
+    public String getStationName() {
+        return stationName;
+    }
+
+    public boolean isTaken() {
+        return isTaken;
+    }
+
+    public void setTakenWith(String stationName) {
+        isTaken = true;
+        this.stationName = stationName;
+    }
+
+    public void release() {
+        isTaken = false;
+        this.stationName = null;
     }
 
     public void setCoordinates(double[] coordinates) {

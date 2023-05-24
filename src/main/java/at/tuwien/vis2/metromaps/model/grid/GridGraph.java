@@ -1,21 +1,23 @@
-package at.tuwien.vis2.metromaps.model;
+package at.tuwien.vis2.metromaps.model.grid;
 
-import at.tuwien.vis2.metromaps.api.M10Service;
+import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
+import at.tuwien.vis2.metromaps.model.input.InputStation;
+import at.tuwien.vis2.metromaps.model.Utils;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
-import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.builder.GraphTypeBuilder;
 import org.jgrapht.traverse.DepthFirstIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GridGraph {
 
-    private final Graph<GridVertex, DefaultEdge> gridGraph;
+    private final Graph<GridVertex, GridEdge> gridGraph;
     private double d = 0.5; // threshold (in km) we would like to have between each station
     private double r = 0.8; // distance between source and target candidates to match input edges onto grid
     private double costM = 0.5;  // move penalty
@@ -29,8 +31,8 @@ public class GridGraph {
 
         calcSizeOfGridGraph(widthInputGraph, heightInputGraph);
 
-        this.gridGraph = GraphTypeBuilder.<GridVertex, DefaultEdge> undirected().allowingMultipleEdges(false)
-                .allowingSelfLoops(false).edgeClass(DefaultEdge.class).weighted(true).buildGraph();
+        this.gridGraph = GraphTypeBuilder.<GridVertex, GridEdge> undirected().allowingMultipleEdges(false)
+                .allowingSelfLoops(false).edgeClass(GridEdge.class).weighted(true).buildGraph();
         double stepSizeLon = (rightUpper[1] - leftUpper[1]) / numberOfVerticesVertical;
         double stepSizeLat = (leftUpper[0] - leftLower[0]) / numberOfVerticesHorizontal;
         // add vertices
@@ -78,14 +80,14 @@ public class GridGraph {
                     Optional<GridVertex> vertex10 = gridGraph.vertexSet().stream()
                             .filter(vertex -> vertex.getIndexY() == finalY-1 && vertex.getIndexX() == finalX-1).findFirst();
 
-                    vertex12.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
-                    vertex2.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
-                    vertex3.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
-                    vertex4.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
-                    vertex6.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
-                    vertex8.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
-                    vertex9.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
-                    vertex10.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
+                    vertex12.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 0)));
+                    vertex2.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 45)));
+                    vertex3.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 90)));
+                    vertex4.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 135)));
+                    vertex6.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 180)));
+                    vertex8.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 225)));
+                    vertex9.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 270)));
+                    vertex10.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 315)));
                 }
             }
 
@@ -97,7 +99,7 @@ public class GridGraph {
         numberOfVerticesVertical = (int) Math.ceil(heightInputGraph / d);
     }
 
-    public List<GridEdge> processInputEdge(MetroLineEdge edgeFromInputGraph, Station sourceFromInputGraph, Station targetFromInputGraph) {
+    public List<GridEdge> processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph) {
 
         double[] sourcePosition = sourceFromInputGraph.getCoordinates();
         double[] targetPosition = targetFromInputGraph.getCoordinates();
@@ -108,67 +110,82 @@ public class GridGraph {
             // sink and souce candidates according to set distance r
             double distanceSource = Utils.getDistanceInKmTo(sourcePosition, vertex.getCoordinates());
             double distanceTarget = Utils.getDistanceInKmTo(targetPosition, vertex.getCoordinates());
-            if (vertex.getCoordinates()[0] == 48.27751786569251 && vertex.getCoordinates()[1] == 16.452139552735247) {
-                logger.info("This weird coordinate outside the gridpgaph has appeared!!!!!!");
-            }
+
             // build voroni diagram to deal with overlapping sink and target candidates
             if (distanceSource < r || distanceTarget < r) {
                 if (distanceSource < distanceTarget) {
                     sourceCandidates.add(vertex);
                     // set penalty for source
-                    Set<DefaultEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
+                    Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
                     double penalty = calculateDistancePenalty(sourceFromInputGraph.getCoordinates(), vertex.getCoordinates());
                     edgesCandidates.forEach(edge -> gridGraph.setEdgeWeight(edge, penalty));
                 } else {
                     targetCandidates.add(vertex);
                     // set penalty for targets
-                    Set<DefaultEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
+                    Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
                     double penalty = calculateDistancePenalty(targetFromInputGraph.getCoordinates(), vertex.getCoordinates());
                     edgesCandidates.forEach(edge -> gridGraph.setEdgeWeight(edge, penalty));
                 }
             }
         });
-        //logger.info("Processing route from " + sourceFromInputGraph.getName() + " to " + targetFromInputGraph.getName());
-        List<DefaultEdge> shortestPath = getShortestPathBetweenTwoSets(sourceCandidates, targetCandidates);
+        List<GridEdge> shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates), targetCandidates);
 
-        // TODO marry the original source and target from input graph with the grid graph
-        // TODO continue with 4.3
-        // update the whole grid: all sink edges (all taken edges from the ``shortest path`` variable have cost inf.
-        // all bend edges (edges in between ingoing and outgoing path of a vertex - smaller angle) have cost inf
-        // TODO update bend costs c180, c135, c90, c45
-        return shortestPath
-                .stream()
-                .map(p -> {
-                    return new GridEdge(gridGraph.getEdgeSource(p), gridGraph.getEdgeTarget(p));
-                })
-                .toList();
+        // set already used edges to inf and mark grid edge as taken
+        shortestPath.forEach(edge -> {
+            gridGraph.setEdgeWeight(edge, Double.MAX_VALUE);
+            edge.getSource().setTakenWith(sourceFromInputGraph.getName());
+            edge.getDestination().setTakenWith(targetFromInputGraph.getName());
+            updateBendCosts(gridGraph.outgoingEdgesOf(edge.getDestination()), edge);
+            // TODO cost update has no effect. maybe something is wrong with source/target?
+        });
+
+        // TODO all bend edges (edges in between ingoing and outgoing path of a vertex - smaller angle) have cost inf
+        return shortestPath;
     }
 
-    private List<DefaultEdge> getShortestPathBetweenTwoSets(Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates) {
+    private void updateBendCosts(Set<GridEdge> outgoingEdges, GridEdge incomingEdge) {
+        int bendCostOfUsedEdge = incomingEdge.getBendCost();
+        // the larger the angle the lower the costs
+        outgoingEdges.forEach(e -> {
+            double edgeCost = 180 - ((e.getBendCost() + incomingEdge.getBendCost()) % 180);
+           // logger.info("Setting edge bend cost from " + e.getBendCost() + "  to " + edgeCost);
+            gridGraph.setEdgeWeight(e, edgeCost);
+        });
+
+
+    }
+
+
+    private Set<GridVertex> filterForAlreadyUsedVertices(Set<GridVertex> sourceCandidates) {
+        Set<GridVertex> taken = sourceCandidates.stream().filter(GridVertex::isTaken).collect(Collectors.toSet());
+        if (taken.isEmpty()) {
+            return sourceCandidates;
+        }
+        return taken;
+
+    }
+
+    private List<GridEdge> getShortestPathBetweenTwoSets(Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates) {
         int shortestDistance = Integer.MAX_VALUE;
-        GraphPath<GridVertex, DefaultEdge> shortestPath = null;
+        GraphPath<GridVertex, GridEdge> shortestPath = null;
         for (GridVertex source: sourceCandidates) {
-            DijkstraShortestPath<GridVertex, DefaultEdge> dijkstraAlg =
+            DijkstraShortestPath<GridVertex, GridEdge> dijkstraAlg =
                     new DijkstraShortestPath<>(gridGraph);
-            ShortestPathAlgorithm.SingleSourcePaths<GridVertex, DefaultEdge> iPaths = dijkstraAlg.getPaths(source);
+            ShortestPathAlgorithm.SingleSourcePaths<GridVertex, GridEdge> iPaths = dijkstraAlg.getPaths(source);
             for(GridVertex target: targetCandidates) {
-                GraphPath<GridVertex, DefaultEdge> path = iPaths.getPath(target);
+                GraphPath<GridVertex, GridEdge> path = iPaths.getPath(target);
                 // TODO use a better distance (chebyshev?)
                 int length = path.getLength();
                 if (length < shortestDistance) {
                     shortestPath = path;
                     shortestDistance = length;
+
                 }
             }
         }
         if (shortestPath == null) {
             logger.warn("No shortest path found!");
             return new ArrayList<>();
-        }
-        for (DefaultEdge e : shortestPath.getEdgeList()) {
-            String msg = String.format("Routing path from %s to %s, source coordinates: %s, %s", gridGraph.getEdgeSource(e).getName(), gridGraph.getEdgeTarget(e).getName(),
-                    gridGraph.getEdgeSource(e).getCoordinates()[0], gridGraph.getEdgeSource(e).getCoordinates()[1]);
-            //logger.info(msg);
         }
         return shortestPath.getEdgeList();
     }
@@ -192,13 +209,6 @@ public class GridGraph {
    }
 
    public Set<GridEdge> getEdges() {
-        Set<GridEdge> gridEdges = new HashSet<>();
-        for(DefaultEdge defaultEdge: gridGraph.edgeSet()) {
-            GridVertex source = gridGraph.getEdgeSource(defaultEdge);
-            GridVertex target = gridGraph.getEdgeTarget(defaultEdge);
-            GridEdge edge = new GridEdge(source, target);
-            gridEdges.add(edge);
-        }
-        return gridEdges;
+        return gridGraph.edgeSet();
    }
 }

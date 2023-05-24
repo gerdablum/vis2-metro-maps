@@ -1,20 +1,20 @@
-package at.tuwien.vis2.metromaps.model;
+package at.tuwien.vis2.metromaps.model.input;
 
 import java.util.HashSet;
 import java.util.List;
 
-public class MetroLineEdge {
+public class InputLineEdge {
 
     private String id;
-    private Station startStation;
-    private Station endStation;
+    private InputStation startStation;
+    private InputStation endStation;
 
     // TODO currently only needed to draw coordinates in map. We should distinguish between edges for graph and
     // geographical lines for drawing with different datatypes.
     private double[][] coordinates;
     private List<String> lineNames;
 
-    public MetroLineEdge(String id, Station startStation, Station endStation, double[][] coordinates, List<String> lineNames) {
+    public InputLineEdge(String id, InputStation startStation, InputStation endStation, double[][] coordinates, List<String> lineNames) {
         this.id = id;
         this.startStation = startStation;
         this.endStation = endStation;
@@ -22,7 +22,7 @@ public class MetroLineEdge {
         this.lineNames = lineNames;
     }
 
-    public MetroLineEdge(String id, double[][] coordinates, List<String> lineNames) {
+    public InputLineEdge(String id, double[][] coordinates, List<String> lineNames) {
         this.id = id;
         this.coordinates = coordinates;
         this.lineNames = lineNames;
@@ -32,19 +32,19 @@ public class MetroLineEdge {
         return id;
     }
 
-    public Station getStartStation() {
+    public InputStation getStartStation() {
         return startStation;
     }
 
-    public void setStartStation(Station startStation) {
+    public void setStartStation(InputStation startStation) {
         this.startStation = startStation;
     }
 
-    public Station getEndStation() {
+    public InputStation getEndStation() {
         return endStation;
     }
 
-    public void setEndStation(Station endStation) {
+    public void setEndStation(InputStation endStation) {
         this.endStation = endStation;
     }
 
@@ -63,10 +63,10 @@ public class MetroLineEdge {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof MetroLineEdge) {
-            boolean hasSameLineEdges = new HashSet<>(this.getLineNames()).containsAll(((MetroLineEdge) obj).getLineNames());
+        if (obj instanceof InputLineEdge) {
+            boolean hasSameLineEdges = new HashSet<>(this.getLineNames()).containsAll(((InputLineEdge) obj).getLineNames());
             // TODO also check for equality for start == end && end == start
-            return hasSameLineEdges && (this.startStation.equals(((MetroLineEdge) obj).getStartStation()) && this.endStation.equals(((MetroLineEdge) obj).getEndStation()));
+            return hasSameLineEdges && (this.startStation.equals(((InputLineEdge) obj).getStartStation()) && this.endStation.equals(((InputLineEdge) obj).getEndStation()));
         }
         return false;
     }

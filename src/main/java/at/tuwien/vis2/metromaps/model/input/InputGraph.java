@@ -1,5 +1,6 @@
-package at.tuwien.vis2.metromaps.model;
+package at.tuwien.vis2.metromaps.model.input;
 
+import at.tuwien.vis2.metromaps.model.Utils;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.builder.GraphTypeBuilder;
 import org.jgrapht.traverse.DepthFirstIterator;
@@ -9,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class InputGraph {
 
-    private Graph<Station, MetroLineEdge> inputGraph;
+    private Graph<InputStation, InputLineEdge> inputGraph;
     private double width;
     private double height;
     private double[] leftUpperCoordinates;
@@ -17,12 +18,12 @@ public class InputGraph {
     private double[] rightUpperCoordinates;
 
     public InputGraph() {
-        this.inputGraph = GraphTypeBuilder.<Station, MetroLineEdge> undirected().allowingMultipleEdges(false)
-                .allowingSelfLoops(false).edgeClass(MetroLineEdge.class).weighted(true).buildGraph();
+        this.inputGraph = GraphTypeBuilder.<InputStation, InputLineEdge> undirected().allowingMultipleEdges(false)
+                .allowingSelfLoops(false).edgeClass(InputLineEdge.class).weighted(true).buildGraph();
     }
 
-    public void addEdgeAndSourceDestVertices(List<MetroLineEdge> edges) {
-        for (MetroLineEdge edge: edges) {
+    public void addEdgeAndSourceDestVertices(List<InputLineEdge> edges) {
+        for (InputLineEdge edge: edges) {
             inputGraph.addVertex(edge.getStartStation());
             inputGraph.addVertex(edge.getEndStation());
             inputGraph.addEdge(edge.getStartStation(), edge.getEndStation(), edge);
@@ -30,8 +31,8 @@ public class InputGraph {
     }
 
     public void calcBoundingBox() {
-        Set<Station> stations = inputGraph.vertexSet();
-        List<double[]> latLons = stations.stream().map(Station::getCoordinates).toList();
+        Set<InputStation> stations = inputGraph.vertexSet();
+        List<double[]> latLons = stations.stream().map(InputStation::getCoordinates).toList();
         double smallestLon = Integer.MAX_VALUE;
         double smallestLat = Integer.MAX_VALUE;
         double largestLon = 0;
@@ -86,34 +87,34 @@ public class InputGraph {
         return rightUpperCoordinates;
     }
 
-    public int getLdegForStation(Station station) {
-        Set<MetroLineEdge> edges = inputGraph.incomingEdgesOf(station);
+    public int getLdegForStation(InputStation station) {
+        Set<InputLineEdge> edges = inputGraph.incomingEdgesOf(station);
         int ldeg = 0;
-        for (MetroLineEdge e: edges) {
+        for (InputLineEdge e: edges) {
             ldeg += e.getLineNames().size();
         }
         return ldeg;
     }
 
-    public List<MetroLineEdge> sortEdges() {
+    public List<InputLineEdge> sortEdges() {
         boolean containsDanglingVertices = true;
-        List<MetroLineEdge> sortedEdges = new ArrayList<>();
-        Station stationWithHighestLdeg = getStationWithHighestLdeg(false);
-        stationWithHighestLdeg.setProcessingState(Station.ProcessingState.DANGLING);
+        List<InputLineEdge> sortedEdges = new ArrayList<>();
+        InputStation stationWithHighestLdeg = getStationWithHighestLdeg(false);
+        stationWithHighestLdeg.setProcessingState(InputStation.ProcessingState.DANGLING);
         while (containsDanglingVertices) {
 
-            Station danglingStationWithHighestLdeg = getStationWithHighestLdeg(true);
-            Set<MetroLineEdge> adjacentEdges = inputGraph.incomingEdgesOf(danglingStationWithHighestLdeg);
-            Set<Station> adjacentStationsSet = new HashSet<>();
-            for (MetroLineEdge e : adjacentEdges) {
-                Station target = inputGraph.getEdgeTarget(e);
-                Station source = inputGraph.getEdgeSource(e);
+            InputStation danglingStationWithHighestLdeg = getStationWithHighestLdeg(true);
+            Set<InputLineEdge> adjacentEdges = inputGraph.incomingEdgesOf(danglingStationWithHighestLdeg);
+            Set<InputStation> adjacentStationsSet = new HashSet<>();
+            for (InputLineEdge e : adjacentEdges) {
+                InputStation target = inputGraph.getEdgeTarget(e);
+                InputStation source = inputGraph.getEdgeSource(e);
                 adjacentStationsSet.add(source);
                 adjacentStationsSet.add(target);
             }
             // take all unprocessed nodes and sort after ldeg
-            List<Station> adjacentStations = adjacentStationsSet.stream()
-                            .filter(s -> s.getProcessingState() == Station.ProcessingState.UNPROCESSED).sorted((o1, o2) -> {
+            List<InputStation> adjacentStations = adjacentStationsSet.stream()
+                            .filter(s -> s.getProcessingState() == InputStation.ProcessingState.UNPROCESSED).sorted((o1, o2) -> {
                                 int ldeg1 = getLdegForStation(o1);
                                 int ldeg2 = getLdegForStation(o2);
                                 return ldeg2 - ldeg1;
@@ -121,15 +122,15 @@ public class InputGraph {
 
             // add the edge that connects highestStation with orderd adjacent unprocessed edge
             adjacentStations.forEach(adjacentStation -> {
-                adjacentStation.setProcessingState(Station.ProcessingState.DANGLING);
+                adjacentStation.setProcessingState(InputStation.ProcessingState.DANGLING);
                 sortedEdges.add(inputGraph.getEdge(danglingStationWithHighestLdeg, adjacentStation));
             });
-            danglingStationWithHighestLdeg.setProcessingState(Station.ProcessingState.PROCESSED);
+            danglingStationWithHighestLdeg.setProcessingState(InputStation.ProcessingState.PROCESSED);
 
             containsDanglingVertices = inputGraph.vertexSet().stream()
-                    .map(Station::getProcessingState)
+                    .map(InputStation::getProcessingState)
                     .toList()
-                    .contains(Station.ProcessingState.DANGLING);
+                    .contains(InputStation.ProcessingState.DANGLING);
         }
         resetStationProcesingState();
         return sortedEdges;
@@ -139,14 +140,14 @@ public class InputGraph {
 
     private void resetStationProcesingState() {
         inputGraph.vertexSet().forEach(v -> {
-            v.setProcessingState(Station.ProcessingState.UNPROCESSED);
+            v.setProcessingState(InputStation.ProcessingState.UNPROCESSED);
         });
     }
 
-    private Station getStationWithHighestLdeg(boolean onlyTakeDanglings) {
-        Set<Station> stations = inputGraph.vertexSet();
+    private InputStation getStationWithHighestLdeg(boolean onlyTakeDanglings) {
+        Set<InputStation> stations = inputGraph.vertexSet();
         if (onlyTakeDanglings) {
-            stations = stations.stream().filter(station -> station.getProcessingState() == Station.ProcessingState.DANGLING).collect(Collectors.toSet());
+            stations = stations.stream().filter(station -> station.getProcessingState() == InputStation.ProcessingState.DANGLING).collect(Collectors.toSet());
         }
         return stations.stream()
                 .max((o1, o2) -> {
@@ -157,9 +158,9 @@ public class InputGraph {
     }
 
     public void printToCommandLine() {
-        Iterator<Station> iter = new DepthFirstIterator<>(inputGraph);
+        Iterator<InputStation> iter = new DepthFirstIterator<>(inputGraph);
         while (iter.hasNext()) {
-            Station vertex = iter.next();
+            InputStation vertex = iter.next();
             System.out.println("Vertex " +vertex.getName() + " has edges: "
                                     + inputGraph.edgesOf(vertex).stream().map(e -> e.getStartStation() + " to " + e.getEndStation()).toList());
         }

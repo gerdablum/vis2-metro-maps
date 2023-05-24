@@ -1,18 +1,21 @@
 package at.tuwien.vis2.metromaps.model;
 
+import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
+import at.tuwien.vis2.metromaps.model.input.InputStation;
+
 import java.util.List;
 
 public interface MetroDataProvider {
 
-    List<Station> getAllStations();
+    List<InputStation> getAllStations();
 
-    List<MetroLineEdge> getAllGeograficEdges();
+    List<InputLineEdge> getAllGeograficEdges();
 
-    List<Station> getAllStationsForLine(String lineId);
+    List<InputStation> getAllStationsForLine(String lineId);
 
-    List<MetroLineEdge> getEdgesWithoutStationInformation(String lineId);
+    List<InputLineEdge> getEdgesWithoutStationInformation(String lineId);
 
-    List<Station> getOrderedStationsForLine(String lineId);
+    List<InputStation> getOrderedStationsForLine(String lineId);
 
-    List<MetroLineEdge> getOrderedEdgesForLine(String lineId);
+    List<InputLineEdge> getOrderedEdgesForLine(String lineId);
 }

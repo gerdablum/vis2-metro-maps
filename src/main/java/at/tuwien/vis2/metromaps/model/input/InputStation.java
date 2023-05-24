@@ -1,8 +1,8 @@
-package at.tuwien.vis2.metromaps.model;
+package at.tuwien.vis2.metromaps.model.input;
 
 import java.util.List;
 
-public class Station {
+public class InputStation {
 
     enum ProcessingState {
         UNPROCESSED,
@@ -17,7 +17,7 @@ public class Station {
     private List<String> lineNames;
     private ProcessingState processingState;
 
-    public Station(String name, String id, double[] coordinates, List<String> lineNames) {
+    public InputStation(String name, String id, double[] coordinates, List<String> lineNames) {
         this.name = name;
         this.id = id;
         this.coordinates = coordinates;
@@ -73,8 +73,8 @@ public class Station {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Station) {
-            return this.getName().equals(((Station) obj).getName());
+        if (obj instanceof InputStation) {
+            return this.getName().equals(((InputStation) obj).getName());
         }
         return false;
     }
