@@ -19,6 +19,10 @@ public class MainController {
     @Autowired
     private MetroDataProvider metroDataProvider;
 
+    @Autowired
+    private OctalinearGraphCalculator octalinearGraphCalculator;
+
+
     @GetMapping("/vienna/stations")
     public List<Station> getAllStations() {
         List<Station> subwayStations = metroDataProvider.getAllStations();
@@ -44,11 +48,16 @@ public class MainController {
         List<String> lineNamesInVienna = Arrays.asList("1", "2", "3", "4", "6");
         for (String lineName: lineNamesInVienna) {
             List<MetroLineEdge> orderedEdgesForLine = metroDataProvider.getOrderedEdgesForLine(lineName);
-            inputGraph.addVerticesFromEdges(orderedEdgesForLine);
+            inputGraph.addEdgeAndSourceDestVertices(orderedEdgesForLine);
         }
-        // TODO there is a weird whole at the bottom of the grid graph. Investigate this
         inputGraph.calcBoundingBox();
         return new GridGraph(inputGraph.getWidth(), inputGraph.getHeight(), inputGraph.getLeftUpperCoordinates(),
                 inputGraph.getLeftLowerCoordinates(), inputGraph.getRightUpperCoordinates());
+    }
+
+    @GetMapping("/vienna/octilinear")
+    public List<List<GridEdge>> getOctilinearGraph() {
+        return octalinearGraphCalculator.calculateOutputGraph();
+
     }
 }

@@ -21,7 +21,7 @@ public class InputGraph {
                 .allowingSelfLoops(false).edgeClass(MetroLineEdge.class).weighted(true).buildGraph();
     }
 
-    public void addVerticesFromEdges(List<MetroLineEdge> edges) {
+    public void addEdgeAndSourceDestVertices(List<MetroLineEdge> edges) {
         for (MetroLineEdge edge: edges) {
             inputGraph.addVertex(edge.getStartStation());
             inputGraph.addVertex(edge.getEndStation());
@@ -131,9 +131,16 @@ public class InputGraph {
                     .toList()
                     .contains(Station.ProcessingState.DANGLING);
         }
+        resetStationProcesingState();
         return sortedEdges;
 
         // TODO sort graph also if it is not connected
+    }
+
+    private void resetStationProcesingState() {
+        inputGraph.vertexSet().forEach(v -> {
+            v.setProcessingState(Station.ProcessingState.UNPROCESSED);
+        });
     }
 
     private Station getStationWithHighestLdeg(boolean onlyTakeDanglings) {

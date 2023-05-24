@@ -43,8 +43,8 @@ public class GridGraph {
             }
         }
         // add edges
-        for (int x = 0; x < numberOfVerticesHorizontal; x++) {
-            for (int y = 0; y <numberOfVerticesVertical; y++) {
+        for (int x = 0; x <= numberOfVerticesHorizontal; x++) {
+            for (int y = 0; y <=numberOfVerticesVertical; y++) {
 
                 int finalY = y;
                 int finalX = x;
@@ -75,10 +75,7 @@ public class GridGraph {
                     Optional<GridVertex> vertex10 = gridGraph.vertexSet().stream()
                             .filter(vertex -> vertex.getIndexY() == finalY-1 && vertex.getIndexX() == finalX-1).findFirst();
 
-                    vertex12.ifPresent(v -> {
-                        gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge());
-                        logger.debug("Adding vertex from " + currentVertex.get().getName() + " to " + v.getName());
-                    });
+                    vertex12.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
                     vertex2.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
                     vertex3.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
                     vertex4.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new DefaultEdge()));
@@ -93,11 +90,11 @@ public class GridGraph {
     }
 
     private void calcSizeOfGridGraph(double widthInputGraph, double heightInputGraph) {
-        numberOfVerticesHorizontal =  (int) (widthInputGraph / d);
-        numberOfVerticesVertical = (int) (heightInputGraph / d);
+        numberOfVerticesHorizontal =  (int) Math.ceil(widthInputGraph / d);
+        numberOfVerticesVertical = (int) Math.ceil(heightInputGraph / d);
     }
 
-    public void processInputEdge(MetroLineEdge edgeFromInputGraph, Station sourceFromInputGraph, Station targetFromInputGraph) {
+    public List<GridEdge> processInputEdge(MetroLineEdge edgeFromInputGraph, Station sourceFromInputGraph, Station targetFromInputGraph) {
 
         double[] sourcePosition = sourceFromInputGraph.getCoordinates();
         double[] targetPosition = targetFromInputGraph.getCoordinates();
@@ -126,6 +123,7 @@ public class GridGraph {
                 }
             }
         });
+        logger.info("Processing route from " + sourceFromInputGraph.getName() + " to " + targetFromInputGraph.getName());
         List<DefaultEdge> shortestPath = getShortestPathBetweenTwoSets(sourceCandidates, targetCandidates);
 
         // TODO marry the original source and target from input graph with the grid graph
@@ -133,6 +131,12 @@ public class GridGraph {
         // update the whole grid: all sink edges (all taken edges from the ``shortest path`` variable have cost inf.
         // all bend edges (edges in between ingoing and outgoing path of a vertex - smaller angle) have cost inf
         // TODO update bend costs c180, c135, c90, c45
+        return shortestPath
+                .stream()
+                .map(p -> {
+                    return new GridEdge(gridGraph.getEdgeSource(p), gridGraph.getEdgeTarget(p));
+                })
+                .toList();
     }
 
     private List<DefaultEdge> getShortestPathBetweenTwoSets(Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates) {
@@ -151,6 +155,11 @@ public class GridGraph {
                     shortestDistance = length;
                 }
             }
+        }
+        for (DefaultEdge e : shortestPath.getEdgeList()) {
+            String msg = String.format("Routing path from %s to %s, source coordinates: %s, %s", gridGraph.getEdgeSource(e).getName(), gridGraph.getEdgeTarget(e).getName(),
+                    gridGraph.getEdgeSource(e).getCoordinates()[0], gridGraph.getEdgeSource(e).getCoordinates()[1]);
+            logger.info(msg);
         }
         return shortestPath.getEdgeList();
     }

@@ -24,7 +24,7 @@ class InputGraphTest {
 
         InputGraph graph = new InputGraph();
 
-        graph.addVerticesFromEdges(Arrays.asList(edge1, edge2, edge3, edge4, edge5));
+        graph.addEdgeAndSourceDestVertices(Arrays.asList(edge1, edge2, edge3, edge4, edge5));
 
         graph.printToCommandLine();
     }
@@ -42,7 +42,7 @@ class InputGraphTest {
 
         InputGraph graph = new InputGraph();
 
-        graph.addVerticesFromEdges(Arrays.asList(edge1, edge2, edge3));
+        graph.addEdgeAndSourceDestVertices(Arrays.asList(edge1, edge2, edge3));
 
         int ldeg1 = graph.getLdegForStation(station1);
         int ldeg2 = graph.getLdegForStation(station2);
