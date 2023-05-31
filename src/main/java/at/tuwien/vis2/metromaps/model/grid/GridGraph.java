@@ -5,7 +5,6 @@ import at.tuwien.vis2.metromaps.model.input.InputStation;
 import at.tuwien.vis2.metromaps.model.Utils;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.builder.GraphTypeBuilder;
 import org.jgrapht.traverse.DepthFirstIterator;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
 public class GridGraph {
 
     private final Graph<GridVertex, GridEdge> gridGraph;
-    private double d = 0.5; // threshold (in km) we would like to have between each station
+    private double d = 0.4; // threshold (in km) we would like to have between each station
     private double r = 0.8; // distance between source and target candidates to match input edges onto grid
     private double costM = 0.5;  // move penalty
     private double costH = 1; // hop cost of using a grid edge
@@ -80,14 +79,14 @@ public class GridGraph {
                     Optional<GridVertex> vertex10 = gridGraph.vertexSet().stream()
                             .filter(vertex -> vertex.getIndexY() == finalY-1 && vertex.getIndexX() == finalX-1).findFirst();
 
-                    vertex12.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 0)));
-                    vertex2.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 45)));
-                    vertex3.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 90)));
-                    vertex4.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 135)));
-                    vertex6.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 180)));
-                    vertex8.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 225)));
-                    vertex9.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 270)));
-                    vertex10.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, 315)));
+                    vertex12.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_180)));
+                    vertex2.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_45)));
+                    vertex3.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_90)));
+                    vertex4.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_135)));
+                    vertex6.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_180)));
+                    vertex8.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_135)));
+                    vertex9.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_90)));
+                    vertex10.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_45)));
                 }
             }
 
@@ -103,7 +102,7 @@ public class GridGraph {
 
         double[] sourcePosition = sourceFromInputGraph.getCoordinates();
         double[] targetPosition = targetFromInputGraph.getCoordinates();
-
+        logger.info("Routing a path from " + sourceFromInputGraph.getName() + " to " + targetFromInputGraph.getName());
         Set<GridVertex> sourceCandidates = new HashSet<>();
         Set<GridVertex> targetCandidates = new HashSet<>();
         gridGraph.vertexSet().forEach( vertex -> {
@@ -118,67 +117,105 @@ public class GridGraph {
                     // set penalty for source
                     Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
                     double penalty = calculateDistancePenalty(sourceFromInputGraph.getCoordinates(), vertex.getCoordinates());
-                    edgesCandidates.forEach(edge -> gridGraph.setEdgeWeight(edge, penalty));
+                    //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceSource + " gets penalty " + penalty);
+                    edgesCandidates.forEach(edge -> edge.updateCosts(penalty));
                 } else {
                     targetCandidates.add(vertex);
                     // set penalty for targets
                     Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
                     double penalty = calculateDistancePenalty(targetFromInputGraph.getCoordinates(), vertex.getCoordinates());
-                    edgesCandidates.forEach(edge -> gridGraph.setEdgeWeight(edge, penalty));
+                    //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceTarget + " gets penalty " + penalty);
+                    edgesCandidates.forEach(edge ->edge.updateCosts(penalty));
                 }
             }
         });
-        List<GridEdge> shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates), targetCandidates);
+        List<GridEdge> shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates, sourceFromInputGraph.getName()), targetCandidates);
 
         // set already used edges to inf and mark grid edge as taken
         shortestPath.forEach(edge -> {
-            gridGraph.setEdgeWeight(edge, Double.MAX_VALUE);
-            edge.getSource().setTakenWith(sourceFromInputGraph.getName());
-            edge.getDestination().setTakenWith(targetFromInputGraph.getName());
             updateBendCosts(gridGraph.outgoingEdgesOf(edge.getDestination()), edge);
-            // TODO cost update has no effect. maybe something is wrong with source/target?
+            edge.getSource().setTaken();
+            // TODO cost update has no effect. maybe something is wrong with source/target? Or just the calculation..
         });
+        logger.info("routed a path from " + shortestPath.get(0).getSource().getName() + " to " +
+                shortestPath.get(shortestPath.size()-1).getDestination().getName() + " with " + shortestPath.size() + " steps");
+        shortestPath.get(0).getSource().setTakenWith(sourceFromInputGraph.getName());
+        shortestPath.get(shortestPath.size()-1).getDestination().setTakenWith(targetFromInputGraph.getName());
 
         // TODO all bend edges (edges in between ingoing and outgoing path of a vertex - smaller angle) have cost inf
         return shortestPath;
     }
 
-    private void updateBendCosts(Set<GridEdge> outgoingEdges, GridEdge incomingEdge) {
-        int bendCostOfUsedEdge = incomingEdge.getBendCost();
-        // the larger the angle the lower the costs
+    public static void updateBendCosts(Set<GridEdge> outgoingEdges, GridEdge incomingEdge) {
+        //logger.info("Center vertex: " + incomingEdge.getSource().getName() + " to " + incomingEdge.getDestination().getName());
+        incomingEdge.setCostsInf();
+        int centerVertexX = incomingEdge.getDestination().getIndexX();
+        int centerVertexY = incomingEdge.getDestination().getIndexY();
+
+        int incomingVertexX = incomingEdge.getSource().getIndexX();
+        int incomingVertexY = incomingEdge.getSource().getIndexY();
+
+        int incomingEdgeDirectionX = centerVertexX - incomingVertexX;
+        int incomingEdgeDirectionY = centerVertexY - incomingVertexY;
+
         outgoingEdges.forEach(e -> {
-            double edgeCost = 180 - ((e.getBendCost() + incomingEdge.getBendCost()) % 180);
-           // logger.info("Setting edge bend cost from " + e.getBendCost() + "  to " + edgeCost);
-            gridGraph.setEdgeWeight(e, edgeCost);
+            int neighbourCenterX = e.getSource().getIndexX();
+            int neighbourCenterY = e.getSource().getIndexY();
+
+            int neighbourOutgoingX = e.getDestination().getIndexX();
+            int neighbourOutgoingY = e.getDestination().getIndexY();
+
+            int neighbourDirectionX = neighbourCenterX - neighbourOutgoingX;
+            int neighbourDirectionY = neighbourCenterY - neighbourOutgoingY;
+
+            double angle1 = Math.atan2(incomingEdgeDirectionY, incomingEdgeDirectionX);
+            double angle2 = Math.atan2(neighbourDirectionY, neighbourDirectionX);
+            double angle = Math.abs(Math.toDegrees(angle2 - angle1) % 180);
+            //logger.info("Edge from vertex " + e.getSource().getName() + " to " +  e.getDestination().getName());
+            //logger.info("Setting edge bend cost from " + e.getBendCost() + "  to " + edgeCost);
+            if (angle == 45) {
+                e.updateCosts(GridEdge.BendCost.C_45);
+            } else if (angle == 90) {
+                e.updateCosts(GridEdge.BendCost.C_90);
+            } else if (angle == 135) {
+                e.updateCosts(GridEdge.BendCost.C_135);
+            } else {
+                e.updateCosts(GridEdge.BendCost.C_180);
+            }
         });
 
 
     }
 
 
-    private Set<GridVertex> filterForAlreadyUsedVertices(Set<GridVertex> sourceCandidates) {
+    private Set<GridVertex> filterForAlreadyUsedVertices(Set<GridVertex> sourceCandidates, String sourceStationName) {
         Set<GridVertex> taken = sourceCandidates.stream().filter(GridVertex::isTaken).collect(Collectors.toSet());
         if (taken.isEmpty()) {
             return sourceCandidates;
         }
-        return taken;
+        Set<GridVertex> takenWithSourceStation = taken.stream().filter(g -> sourceStationName.equals(g.getStationName())).collect(Collectors.toSet());
+        if (takenWithSourceStation.isEmpty()) {
+            return taken;
+        }
+        return takenWithSourceStation;
 
     }
 
     private List<GridEdge> getShortestPathBetweenTwoSets(Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates) {
         int shortestDistance = Integer.MAX_VALUE;
+        GridVertex finalSource = null;
+        GridVertex finalTarget = null;
         GraphPath<GridVertex, GridEdge> shortestPath = null;
         for (GridVertex source: sourceCandidates) {
-            DijkstraShortestPath<GridVertex, GridEdge> dijkstraAlg =
-                    new DijkstraShortestPath<>(gridGraph);
-            ShortestPathAlgorithm.SingleSourcePaths<GridVertex, GridEdge> iPaths = dijkstraAlg.getPaths(source);
             for(GridVertex target: targetCandidates) {
-                GraphPath<GridVertex, GridEdge> path = iPaths.getPath(target);
+                GraphPath<GridVertex, GridEdge> path = DijkstraShortestPath.findPathBetween(gridGraph, source, target);
                 // TODO use a better distance (chebyshev?)
                 int length = path.getLength();
                 if (length < shortestDistance) {
                     shortestPath = path;
                     shortestDistance = length;
+                    finalSource = source;
+                    finalTarget = target;
 
                 }
             }
@@ -187,7 +224,19 @@ public class GridGraph {
             logger.warn("No shortest path found!");
             return new ArrayList<>();
         }
-        return shortestPath.getEdgeList();
+        // The path source destination direction can be reversed (because path is undirected I guess)
+        List<GridEdge> pathList = shortestPath.getEdgeList();
+        if (!finalSource.equals(pathList.get(0).getSource())) {
+            Collections.reverse(pathList);
+        }
+        logger.info("path list first edge source:" +
+                shortestPath.getEdgeList().get(0).getSource().getName() +
+                " shortest path chosen source:" + finalSource.getName());
+        logger.info("path list last edge destination:" +
+                shortestPath.getEdgeList().get(shortestPath.getEdgeList().size() -1).getDestination().getName() +
+                " shortest path chosen destination:" +
+                finalTarget.getName());
+        return pathList;
     }
 
     private double calculateDistancePenalty(double[] originalGridNotePosition, double[] candidateGridNotePosition) {

@@ -15,15 +15,17 @@ import java.util.List;
 public class OctalinearGraphCalculator {
 
     private GridGraph gridGraph;
+    private List<List<GridEdge>> outputGraphList;
     private MetroDataProvider metroDataProvider;
 
     @Autowired
     public OctalinearGraphCalculator(MetroDataProvider metroDataProvider) {
         // TODO get this linenames from metroDataProvider
         this.metroDataProvider = metroDataProvider;
+        this.outputGraphList = calculateOutputGraph();
     }
 
-    public List<List<GridEdge>> calculateOutputGraph() {
+    private List<List<GridEdge>> calculateOutputGraph() {
         InputGraph inputGraph = new InputGraph();
         List<String> lineNamesInVienna = Arrays.asList("1", "2", "3", "4", "6");
         for (String lineName: lineNamesInVienna) {
@@ -46,5 +48,7 @@ public class OctalinearGraphCalculator {
         return  gridGraph;
     }
 
-
+    public List<List<GridEdge>> getOutputGraphList() {
+        return outputGraphList;
+    }
 }

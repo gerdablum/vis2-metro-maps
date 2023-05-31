@@ -5,12 +5,28 @@ import java.util.Objects;
 // TODO this class is to wrap default edge and prevent serializing errors with jackson
 public class GridEdge {
 
+    public enum BendCost {
+        C_45(2),
+        C_90(1.5f),
+        C_135(1),
+        C_180(0);
+        private float weight;
+        private BendCost(float weight) {
+            this.weight = weight;
+        }
+
+        public float getWeight() {
+            return this.weight;
+        }
+    }
 
     private GridVertex source;
     private GridVertex destination;
-    private int bendCost;
+    private BendCost bendCost;
+    private double offsetCosts = 1;
+    private double costs = 1;
 
-    public GridEdge(GridVertex source, GridVertex destination, int bendCost ) {
+    public GridEdge(GridVertex source, GridVertex destination, BendCost bendCost ) {
         this.source = source;
         this.destination = destination;
         this.bendCost = bendCost;
@@ -24,8 +40,30 @@ public class GridEdge {
         return destination;
     }
 
-    public int getBendCost() {
+    public BendCost getBendCost() {
         return bendCost;
+    }
+
+    public void updateCosts(double offsetCosts) {
+        this.offsetCosts = offsetCosts;
+        costs = this.bendCost.getWeight() + offsetCosts;
+    }
+
+    public void setCostsInf() {
+        costs = Double.MAX_VALUE;
+    }
+
+    public double updateCosts(BendCost newBendCost) {
+        if (costs == Double.MAX_VALUE) {
+            return costs;
+        }
+        this.bendCost = newBendCost;
+        costs = this.bendCost.getWeight() + offsetCosts;
+        return costs;
+    }
+
+    public double getCosts() {
+        return costs;
     }
 
     @Override

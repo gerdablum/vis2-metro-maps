@@ -57,6 +57,10 @@ public class GridVertex {
         this.stationName = stationName;
     }
 
+    public void setTaken() {
+        isTaken = true;
+    }
+
     public void release() {
         isTaken = false;
         this.stationName = null;

@@ -65,7 +65,7 @@ public class InputLineEdge {
     public boolean equals(Object obj) {
         if (obj instanceof InputLineEdge) {
             boolean hasSameLineEdges = new HashSet<>(this.getLineNames()).containsAll(((InputLineEdge) obj).getLineNames());
-            // TODO also check for equality for start == end && end == start
+            // TODO also check for equality for start == end && end == start??
             return hasSameLineEdges && (this.startStation.equals(((InputLineEdge) obj).getStartStation()) && this.endStation.equals(((InputLineEdge) obj).getEndStation()));
         }
         return false;

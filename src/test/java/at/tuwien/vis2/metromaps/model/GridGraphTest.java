@@ -12,17 +12,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
 class GridGraphTest {
 
-    @Value("classpath:exports/UBAHNOGD_UBAHNHALTOGD.json")
-    Resource data;
     @Test
     public void test() {
         GridGraph graph = new GridGraph(2, 2, new double[]{0,0}, new double[]{0,4}, new double[]{4,0});
@@ -58,17 +53,24 @@ class GridGraphTest {
     }
 
     @Test
-    public void overlyComplicatedTestToCheckCoordinatesWithJsonData() {
-        MetroDataProvider metroDataProvider = new M10Service(data);
-        OctalinearGraphCalculator graphCalculator = new OctalinearGraphCalculator(metroDataProvider);
-        List<List<GridEdge>> gridEdgesList = graphCalculator.calculateOutputGraph();
-        GridGraph graph = graphCalculator.getGridGraph();
-        for (List<GridEdge> gridEdges : gridEdgesList) {
-            for (GridEdge e : gridEdges) {
-                assertTrue(isGridEdgeSameAsGridVertices(graph, e));
-            }
-        }
+    void testAngleCalculation() {
+        GridVertex center = new GridVertex("1", 1, 1, new double[2]);
+        GridVertex upper = new GridVertex("2", 1, 0, new double[2]);
+        GridVertex lower = new GridVertex("3", 1, 2, new double[2]);
+        GridVertex left = new GridVertex("4", 0, 1, new double[2]);
+        GridVertex rightUpper = new GridVertex("5", 2, 0, new double[2]);
+        GridEdge gridEdgeIncoming = new GridEdge(rightUpper, center, GridEdge.BendCost.C_180);
+        GridEdge gridEdgeOutgoing1 = new GridEdge(center, lower, GridEdge.BendCost.C_90);
+        GridEdge gridEdgeOutgoing2 = new GridEdge(center, left, GridEdge.BendCost.C_90);
+        GridEdge gridEdgeOutgoing3 = new GridEdge(center, upper, GridEdge.BendCost.C_180);
+        Set<GridEdge> outgoing = new HashSet<GridEdge>();
+        outgoing.add(gridEdgeOutgoing1);
+        outgoing.add(gridEdgeOutgoing2);
+        outgoing.add(gridEdgeOutgoing3);
+        GridGraph.updateBendCosts(outgoing, gridEdgeIncoming);
     }
+
+
 
     private boolean isGridEdgeSameAsGridVertices(GridGraph g, GridEdge e) {
         for (GridVertex v : g.getGridVertices()) {

@@ -11,8 +11,8 @@ map.on("zoomend", function() {
   console.log(zoom);
   if (zoom > 12 && stationMarker != null) {
     stationMarker.forEach(a => a.addTo(map));
+    //gridEdges.forEach(a => a.addTo(map));
     gridMarker.forEach(a => a.addTo(map));
-    gridEdges.forEach(a => a.addTo(map));
   }
   if (zoom <= 12 && stationMarker != null) {
     stationMarker.forEach(a => map.removeLayer(a));
@@ -39,8 +39,12 @@ function fetchGrid() {
              gridEdge.destination.coordinates], {color: 'grey', opacity: 0.5, weight: 10}));
         }
         for (var gridNode of response.data.gridVertices) {
-        var text = gridNode.name + ", " + gridNode.coordinates[0] + gridNode.coordinates[1];
-            gridMarker.push(L.circleMarker(gridNode.coordinates).bindTooltip(text).openTooltip());
+        var text = gridNode.name + ", " + gridNode.stationName + ", " + gridNode.coordinates[0] + gridNode.coordinates[1];
+            var color =  {color: 'blue'}
+            if (gridNode.stationName !== null) {
+                color =  {color: 'red'}
+            }
+            gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(text).openTooltip());
         }
 
     })

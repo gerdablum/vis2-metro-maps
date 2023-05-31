@@ -51,7 +51,7 @@ public class MainController {
 
     @GetMapping("/vienna/octilinear")
     public List<List<GridEdge>> getOctilinearGraph() {
-        return octalinearGraphCalculator.calculateOutputGraph();
+        return octalinearGraphCalculator.getOutputGraphList();
 
     }
 }
