@@ -116,16 +116,17 @@ public class GridGraph {
                     sourceCandidates.add(vertex);
                     // set penalty for source
                     Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
-                    double penalty = calculateDistancePenalty(sourceFromInputGraph.getCoordinates(), vertex.getCoordinates());
+                    double offsetcosts = calculateDistancePenalty(sourceFromInputGraph.getCoordinates(), vertex.getCoordinates());
                     //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceSource + " gets penalty " + penalty);
-                    edgesCandidates.forEach(edge -> edge.updateCosts(penalty));
+                    UpdateGridGraphCost(edgesCandidates, offsetcosts);
+
                 } else {
                     targetCandidates.add(vertex);
                     // set penalty for targets
                     Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
-                    double penalty = calculateDistancePenalty(targetFromInputGraph.getCoordinates(), vertex.getCoordinates());
+                    double offsetcosts = calculateDistancePenalty(targetFromInputGraph.getCoordinates(), vertex.getCoordinates());
                     //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceTarget + " gets penalty " + penalty);
-                    edgesCandidates.forEach(edge ->edge.updateCosts(penalty));
+                    UpdateGridGraphCost(edgesCandidates, offsetcosts);
                 }
             }
         });
@@ -146,7 +147,14 @@ public class GridGraph {
         return shortestPath;
     }
 
-    public static void updateBendCosts(Set<GridEdge> outgoingEdges, GridEdge incomingEdge) {
+    private void UpdateGridGraphCost(Set<GridEdge> edgesCandidates, double penalty) {
+        edgesCandidates.forEach(edge -> {
+            edge.updateCosts(penalty);
+            gridGraph.setEdgeWeight(edge, edge.getCosts());
+        });
+    }
+
+    public void updateBendCosts(Set<GridEdge> outgoingEdges, GridEdge incomingEdge) {
         //logger.info("Center vertex: " + incomingEdge.getSource().getName() + " to " + incomingEdge.getDestination().getName());
         incomingEdge.setCostsInf();
         int centerVertexX = incomingEdge.getDestination().getIndexX();
@@ -161,7 +169,6 @@ public class GridGraph {
         outgoingEdges.forEach(e -> {
             int neighbourCenterX = e.getSource().getIndexX();
             int neighbourCenterY = e.getSource().getIndexY();
-
             int neighbourOutgoingX = e.getDestination().getIndexX();
             int neighbourOutgoingY = e.getDestination().getIndexY();
 
@@ -182,11 +189,9 @@ public class GridGraph {
             } else {
                 e.updateCosts(GridEdge.BendCost.C_180);
             }
+            gridGraph.setEdgeWeight(e, e.getCosts());
         });
-
-
     }
-
 
     private Set<GridVertex> filterForAlreadyUsedVertices(Set<GridVertex> sourceCandidates, String sourceStationName) {
         Set<GridVertex> taken = sourceCandidates.stream().filter(GridVertex::isTaken).collect(Collectors.toSet());
@@ -202,15 +207,14 @@ public class GridGraph {
     }
 
     private List<GridEdge> getShortestPathBetweenTwoSets(Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates) {
-        int shortestDistance = Integer.MAX_VALUE;
+        double shortestDistance = Double.MAX_VALUE;
         GridVertex finalSource = null;
         GridVertex finalTarget = null;
         GraphPath<GridVertex, GridEdge> shortestPath = null;
         for (GridVertex source: sourceCandidates) {
             for(GridVertex target: targetCandidates) {
                 GraphPath<GridVertex, GridEdge> path = DijkstraShortestPath.findPathBetween(gridGraph, source, target);
-                // TODO use a better distance (chebyshev?)
-                int length = path.getLength();
+                double length = getTotalWeight(path.getEdgeList());
                 if (length < shortestDistance) {
                     shortestPath = path;
                     shortestDistance = length;
@@ -220,6 +224,7 @@ public class GridGraph {
                 }
             }
         }
+        // TODO: maybe update BendCosts inside Dijkstra
         if (shortestPath == null) {
             logger.warn("No shortest path found!");
             return new ArrayList<>();
@@ -237,6 +242,14 @@ public class GridGraph {
                 " shortest path chosen destination:" +
                 finalTarget.getName());
         return pathList;
+    }
+
+    private double getTotalWeight(List<GridEdge> edgeList) {
+        double totalWeight = 0;
+        for (GridEdge gridEdge : edgeList) {
+            totalWeight += gridEdge.getCosts();
+        }
+        return totalWeight;
     }
 
     private double calculateDistancePenalty(double[] originalGridNotePosition, double[] candidateGridNotePosition) {

@@ -46,7 +46,7 @@ public class GridEdge {
 
     public void updateCosts(double offsetCosts) {
         this.offsetCosts = offsetCosts;
-        costs = this.bendCost.getWeight() + offsetCosts;
+        costs = this.bendCost.getWeight() * offsetCosts;    // instead of addition
     }
 
     public void setCostsInf() {
@@ -58,7 +58,7 @@ public class GridEdge {
             return costs;
         }
         this.bendCost = newBendCost;
-        costs = this.bendCost.getWeight() + offsetCosts;
+        costs = this.bendCost.getWeight() * offsetCosts;    // instead of addition
         return costs;
     }
 

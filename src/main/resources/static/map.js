@@ -78,7 +78,8 @@ function fetchData() {
         // handle success
         stationMarker = [];
         for (var node of response.data) {
-            stationMarker.push(L.marker(node.coordinates));
+            var text = node.name;
+            stationMarker.push(L.marker(node.coordinates).bindTooltip(text).openTooltip());
         }
       })
       .catch(function (error) {

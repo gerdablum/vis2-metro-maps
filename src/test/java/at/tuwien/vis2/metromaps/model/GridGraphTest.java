@@ -67,7 +67,7 @@ class GridGraphTest {
         outgoing.add(gridEdgeOutgoing1);
         outgoing.add(gridEdgeOutgoing2);
         outgoing.add(gridEdgeOutgoing3);
-        GridGraph.updateBendCosts(outgoing, gridEdgeIncoming);
+        //GridGraph.updateBendCosts(outgoing, gridEdgeIncoming);
     }
 
 
