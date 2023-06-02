@@ -32,18 +32,19 @@ public class GridGraph {
 
         this.gridGraph = GraphTypeBuilder.<GridVertex, GridEdge> undirected().allowingMultipleEdges(false)
                 .allowingSelfLoops(false).edgeClass(GridEdge.class).weighted(true).buildGraph();
-        double stepSizeLon = (rightUpper[1] - leftUpper[1]) / numberOfVerticesVertical;
-        double stepSizeLat = (leftUpper[0] - leftLower[0]) / numberOfVerticesHorizontal;
+        double stepSizeLat = (leftUpper[0] - leftLower[0]) / numberOfVerticesVertical;          // distance between lat lines
+        double stepSizeLon = (rightUpper[1] - leftUpper[1]) / numberOfVerticesHorizontal;       // distance between lon lines
         // add vertices
         double[] coordinates = leftUpper;
         for (int y = 0; y <= numberOfVerticesVertical; y++) {
             for (int x = 0; x <= numberOfVerticesHorizontal; x++) {
 
-                coordinates = new double[]{leftUpper[0] - stepSizeLat*x, leftUpper[1] + stepSizeLon*y};
+                coordinates = new double[]{leftUpper[0] - stepSizeLat*y, leftUpper[1] + stepSizeLon*x};
                 gridGraph.addVertex(new GridVertex(x+","+y, x, y, coordinates));
 
             }
         }
+        // (Latitude, Longitude); lat=horizontal,lon=vertikal
         // add edges
         for (int y = 0; y <= numberOfVerticesVertical; y++) {
             for (int x = 0; x <numberOfVerticesHorizontal; x++) {
@@ -104,7 +105,7 @@ public class GridGraph {
         Set<GridVertex> sourceCandidates = new HashSet<>();
         Set<GridVertex> targetCandidates = new HashSet<>();
         gridGraph.vertexSet().forEach( vertex -> {
-            // sink and souce candidates according to set distance r
+            // sink and source candidates according to set distance r
             double distanceSource = Utils.getDistanceInKmTo(sourcePosition, vertex.getCoordinates());
             double distanceTarget = Utils.getDistanceInKmTo(targetPosition, vertex.getCoordinates());
 
@@ -196,9 +197,16 @@ public class GridGraph {
             int neighbourDirectionX = neighbourOutgoingX - neighbourCenterX;
             int neighbourDirectionY = neighbourOutgoingY - neighbourCenterY;
 
+            if(neighbourCenterX == 21 && neighbourCenterY == 20) {
+                int a = 1;
+                if(neighbourCenterX == 21 && neighbourCenterY == 20) {
+                }
+            }
 
-            double angle1 = Math.atan2(incomingEdgeDirectionY, incomingEdgeDirectionX);
-            double angle2 = Math.atan2(neighbourDirectionY, neighbourDirectionX);
+            // TODO: missing Karlsplatz? andere Daten einspielen
+
+            double angle1 = Math.atan2(-incomingEdgeDirectionY, incomingEdgeDirectionX);
+            double angle2 = Math.atan2(-neighbourDirectionY, neighbourDirectionX);
             double angle = Math.abs(Math.toDegrees(angle2 - angle1) % 180);
             //logger.info("Edge from vertex " + e.getSource().getName() + " to " +  e.getDestination().getName());
             //logger.info("Setting edge bend cost from " + e.getBendCost() + "  to " + edgeCost);

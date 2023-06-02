@@ -1,0 +1,1034 @@
+[
+  [
+    {
+      "source": {
+        "name": "34,3",
+        "indexX": 34,
+        "indexY": 3,
+        "coordinates": [
+          48.266761573380805,
+          16.44384614173632
+        ],
+        "stationName": "Großfeldsiedlung",
+        "taken": true
+      },
+      "destination": {
+        "name": "35,4",
+        "indexX": 35,
+        "indexY": 4,
+        "coordinates": [
+          48.263176142610234,
+          16.449228807424042
+        ],
+        "stationName": "Aderklaaer Straße",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "36,1",
+        "indexX": 36,
+        "indexY": 1,
+        "coordinates": [
+          48.27393243492194,
+          16.454611473111765
+        ],
+        "stationName": "Leopoldau",
+        "taken": true
+      },
+      "destination": {
+        "name": "35,2",
+        "indexX": 35,
+        "indexY": 2,
+        "coordinates": [
+          48.27034700415137,
+          16.449228807424042
+        ],
+        "stationName": "Großfeldsiedlung",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "35,4",
+        "indexX": 35,
+        "indexY": 4,
+        "coordinates": [
+          48.263176142610234,
+          16.449228807424042
+        ],
+        "stationName": "Aderklaaer Straße",
+        "taken": true
+      },
+      "destination": {
+        "name": "36,5",
+        "indexX": 36,
+        "indexY": 5,
+        "coordinates": [
+          48.259590711839664,
+          16.454611473111765
+        ],
+        "stationName": "Rennbahnweg",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "36,5",
+        "indexX": 36,
+        "indexY": 5,
+        "coordinates": [
+          48.259590711839664,
+          16.454611473111765
+        ],
+        "stationName": "Rennbahnweg",
+        "taken": true
+      },
+      "destination": {
+        "name": "35,6",
+        "indexX": 35,
+        "indexY": 6,
+        "coordinates": [
+          48.25600528106909,
+          16.449228807424042
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_90",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "35,6",
+        "indexX": 35,
+        "indexY": 6,
+        "coordinates": [
+          48.25600528106909,
+          16.449228807424042
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "34,7",
+        "indexX": 34,
+        "indexY": 7,
+        "coordinates": [
+          48.25241985029853,
+          16.44384614173632
+        ],
+        "stationName": "Kagraner Platz",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "34,7",
+        "indexX": 34,
+        "indexY": 7,
+        "coordinates": [
+          48.25241985029853,
+          16.44384614173632
+        ],
+        "stationName": "Kagraner Platz",
+        "taken": true
+      },
+      "destination": {
+        "name": "33,8",
+        "indexX": 33,
+        "indexY": 8,
+        "coordinates": [
+          48.24883441952796,
+          16.438463476048597
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "33,8",
+        "indexX": 33,
+        "indexY": 8,
+        "coordinates": [
+          48.24883441952796,
+          16.438463476048597
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "32,9",
+        "indexX": 32,
+        "indexY": 9,
+        "coordinates": [
+          48.24524898875739,
+          16.433080810360874
+        ],
+        "stationName": "Kagran",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "32,9",
+        "indexX": 32,
+        "indexY": 9,
+        "coordinates": [
+          48.24524898875739,
+          16.433080810360874
+        ],
+        "stationName": "Kagran",
+        "taken": true
+      },
+      "destination": {
+        "name": "31,10",
+        "indexX": 31,
+        "indexY": 10,
+        "coordinates": [
+          48.24166355798682,
+          16.427698144673148
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "31,10",
+        "indexX": 31,
+        "indexY": 10,
+        "coordinates": [
+          48.24166355798682,
+          16.427698144673148
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "30,11",
+        "indexX": 30,
+        "indexY": 11,
+        "coordinates": [
+          48.23807812721625,
+          16.422315478985425
+        ],
+        "stationName": "Alte Donau",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "30,11",
+        "indexX": 30,
+        "indexY": 11,
+        "coordinates": [
+          48.23807812721625,
+          16.422315478985425
+        ],
+        "stationName": "Alte Donau",
+        "taken": true
+      },
+      "destination": {
+        "name": "29,12",
+        "indexX": 29,
+        "indexY": 12,
+        "coordinates": [
+          48.234492696445685,
+          16.416932813297702
+        ],
+        "stationName": "Kaisermühlen-VIC",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "29,12",
+        "indexX": 29,
+        "indexY": 12,
+        "coordinates": [
+          48.234492696445685,
+          16.416932813297702
+        ],
+        "stationName": "Kaisermühlen-VIC",
+        "taken": true
+      },
+      "destination": {
+        "name": "28,13",
+        "indexX": 28,
+        "indexY": 13,
+        "coordinates": [
+          48.230907265675114,
+          16.41155014760998
+        ],
+        "stationName": "Donauinsel",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "28,13",
+        "indexX": 28,
+        "indexY": 13,
+        "coordinates": [
+          48.230907265675114,
+          16.41155014760998
+        ],
+        "stationName": "Donauinsel",
+        "taken": true
+      },
+      "destination": {
+        "name": "27,14",
+        "indexX": 27,
+        "indexY": 14,
+        "coordinates": [
+          48.227321834904544,
+          16.406167481922257
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "27,14",
+        "indexX": 27,
+        "indexY": 14,
+        "coordinates": [
+          48.227321834904544,
+          16.406167481922257
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "26,15",
+        "indexX": 26,
+        "indexY": 15,
+        "coordinates": [
+          48.22373640413397,
+          16.400784816234534
+        ],
+        "stationName": "Vorgartenstraße",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "26,15",
+        "indexX": 26,
+        "indexY": 15,
+        "coordinates": [
+          48.22373640413397,
+          16.400784816234534
+        ],
+        "stationName": "Vorgartenstraße",
+        "taken": true
+      },
+      "destination": {
+        "name": "25,16",
+        "indexX": 25,
+        "indexY": 16,
+        "coordinates": [
+          48.22015097336341,
+          16.395402150546808
+        ],
+        "stationName": "Praterstern bzw. Wien Nord (ÖBB)",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "25,16",
+        "indexX": 25,
+        "indexY": 16,
+        "coordinates": [
+          48.22015097336341,
+          16.395402150546808
+        ],
+        "stationName": "Praterstern bzw. Wien Nord (ÖBB)",
+        "taken": true
+      },
+      "destination": {
+        "name": "24,17",
+        "indexX": 24,
+        "indexY": 17,
+        "coordinates": [
+          48.21656554259284,
+          16.390019484859085
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "24,17",
+        "indexX": 24,
+        "indexY": 17,
+        "coordinates": [
+          48.21656554259284,
+          16.390019484859085
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "23,18",
+        "indexX": 23,
+        "indexY": 18,
+        "coordinates": [
+          48.21298011182227,
+          16.384636819171362
+        ],
+        "stationName": "Nestroyplatz",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "23,18",
+        "indexX": 23,
+        "indexY": 18,
+        "coordinates": [
+          48.21298011182227,
+          16.384636819171362
+        ],
+        "stationName": "Nestroyplatz",
+        "taken": true
+      },
+      "destination": {
+        "name": "22,19",
+        "indexX": 22,
+        "indexY": 19,
+        "coordinates": [
+          48.2093946810517,
+          16.37925415348364
+        ],
+        "stationName": "Schwedenplatz",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "22,19",
+        "indexX": 22,
+        "indexY": 19,
+        "coordinates": [
+          48.2093946810517,
+          16.37925415348364
+        ],
+        "stationName": "Schwedenplatz",
+        "taken": true
+      },
+      "destination": {
+        "name": "21,20",
+        "indexX": 21,
+        "indexY": 20,
+        "coordinates": [
+          48.20580925028113,
+          16.373871487795917
+        ],
+        "stationName": "Stephansplatz",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "21,20",
+        "indexX": 21,
+        "indexY": 20,
+        "coordinates": [
+          48.20580925028113,
+          16.373871487795917
+        ],
+        "stationName": "Stephansplatz",
+        "taken": true
+      },
+      "destination": {
+        "name": "22,21",
+        "indexX": 22,
+        "indexY": 21,
+        "coordinates": [
+          48.202223819510564,
+          16.37925415348364
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_90",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "22,21",
+        "indexX": 22,
+        "indexY": 21,
+        "coordinates": [
+          48.202223819510564,
+          16.37925415348364
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "21,22",
+        "indexX": 21,
+        "indexY": 22,
+        "coordinates": [
+          48.198638388739994,
+          16.373871487795917
+        ],
+        "stationName": "Taubstummengasse",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "21,22",
+        "indexX": 21,
+        "indexY": 22,
+        "coordinates": [
+          48.198638388739994,
+          16.373871487795917
+        ],
+        "stationName": "Taubstummengasse",
+        "taken": true
+      },
+      "destination": {
+        "name": "20,23",
+        "indexX": 20,
+        "indexY": 23,
+        "coordinates": [
+          48.19505295796942,
+          16.36848882210819
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "20,23",
+        "indexX": 20,
+        "indexY": 23,
+        "coordinates": [
+          48.19505295796942,
+          16.36848882210819
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "20,24",
+        "indexX": 20,
+        "indexY": 24,
+        "coordinates": [
+          48.19146752719885,
+          16.36848882210819
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "20,24",
+        "indexX": 20,
+        "indexY": 24,
+        "coordinates": [
+          48.19146752719885,
+          16.36848882210819
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "21,25",
+        "indexX": 21,
+        "indexY": 25,
+        "coordinates": [
+          48.18788209642828,
+          16.373871487795917
+        ],
+        "stationName": "Südtiroler Platz",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "21,25",
+        "indexX": 21,
+        "indexY": 25,
+        "coordinates": [
+          48.18788209642828,
+          16.373871487795917
+        ],
+        "stationName": "Südtiroler Platz",
+        "taken": true
+      },
+      "destination": {
+        "name": "20,25",
+        "indexX": 20,
+        "indexY": 25,
+        "coordinates": [
+          48.18788209642828,
+          16.36848882210819
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_135",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "20,25",
+        "indexX": 20,
+        "indexY": 25,
+        "coordinates": [
+          48.18788209642828,
+          16.36848882210819
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "21,26",
+        "indexX": 21,
+        "indexY": 26,
+        "coordinates": [
+          48.18429666565772,
+          16.373871487795917
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "21,26",
+        "indexX": 21,
+        "indexY": 26,
+        "coordinates": [
+          48.18429666565772,
+          16.373871487795917
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "21,27",
+        "indexX": 21,
+        "indexY": 27,
+        "coordinates": [
+          48.18071123488715,
+          16.373871487795917
+        ],
+        "stationName": "Keplerplatz",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "21,27",
+        "indexX": 21,
+        "indexY": 27,
+        "coordinates": [
+          48.18071123488715,
+          16.373871487795917
+        ],
+        "stationName": "Keplerplatz",
+        "taken": true
+      },
+      "destination": {
+        "name": "21,28",
+        "indexX": 21,
+        "indexY": 28,
+        "coordinates": [
+          48.17712580411658,
+          16.373871487795917
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "21,28",
+        "indexX": 21,
+        "indexY": 28,
+        "coordinates": [
+          48.17712580411658,
+          16.373871487795917
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "22,29",
+        "indexX": 22,
+        "indexY": 29,
+        "coordinates": [
+          48.17354037334601,
+          16.37925415348364
+        ],
+        "stationName": "Reumannplatz",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "22,29",
+        "indexX": 22,
+        "indexY": 29,
+        "coordinates": [
+          48.17354037334601,
+          16.37925415348364
+        ],
+        "stationName": "Reumannplatz",
+        "taken": true
+      },
+      "destination": {
+        "name": "23,30",
+        "indexX": 23,
+        "indexY": 30,
+        "coordinates": [
+          48.169954942575444,
+          16.384636819171362
+        ],
+        "stationName": "Troststraße",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "23,30",
+        "indexX": 23,
+        "indexY": 30,
+        "coordinates": [
+          48.169954942575444,
+          16.384636819171362
+        ],
+        "stationName": "Troststraße",
+        "taken": true
+      },
+      "destination": {
+        "name": "24,31",
+        "indexX": 24,
+        "indexY": 31,
+        "coordinates": [
+          48.166369511804874,
+          16.390019484859085
+        ],
+        "stationName": "Altes Landgut",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "24,31",
+        "indexX": 24,
+        "indexY": 31,
+        "coordinates": [
+          48.166369511804874,
+          16.390019484859085
+        ],
+        "stationName": "Altes Landgut",
+        "taken": true
+      },
+      "destination": {
+        "name": "23,32",
+        "indexX": 23,
+        "indexY": 32,
+        "coordinates": [
+          48.1627840810343,
+          16.384636819171362
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_90",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "23,32",
+        "indexX": 23,
+        "indexY": 32,
+        "coordinates": [
+          48.1627840810343,
+          16.384636819171362
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "23,33",
+        "indexX": 23,
+        "indexY": 33,
+        "coordinates": [
+          48.15919865026373,
+          16.384636819171362
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "23,33",
+        "indexX": 23,
+        "indexY": 33,
+        "coordinates": [
+          48.15919865026373,
+          16.384636819171362
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "23,34",
+        "indexX": 23,
+        "indexY": 34,
+        "coordinates": [
+          48.15561321949316,
+          16.384636819171362
+        ],
+        "stationName": "Alaudagasse",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "23,34",
+        "indexX": 23,
+        "indexY": 34,
+        "coordinates": [
+          48.15561321949316,
+          16.384636819171362
+        ],
+        "stationName": "Alaudagasse",
+        "taken": true
+      },
+      "destination": {
+        "name": "23,35",
+        "indexX": 23,
+        "indexY": 35,
+        "coordinates": [
+          48.1520277887226,
+          16.384636819171362
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "23,35",
+        "indexX": 23,
+        "indexY": 35,
+        "coordinates": [
+          48.1520277887226,
+          16.384636819171362
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "23,36",
+        "indexX": 23,
+        "indexY": 36,
+        "coordinates": [
+          48.14844235795203,
+          16.384636819171362
+        ],
+        "stationName": "Neulaa",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ],
+  [
+    {
+      "source": {
+        "name": "23,36",
+        "indexX": 23,
+        "indexY": 36,
+        "coordinates": [
+          48.14844235795203,
+          16.384636819171362
+        ],
+        "stationName": "Neulaa",
+        "taken": true
+      },
+      "destination": {
+        "name": "23,37",
+        "indexX": 23,
+        "indexY": 37,
+        "coordinates": [
+          48.14485692718146,
+          16.384636819171362
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "23,37",
+        "indexX": 23,
+        "indexY": 37,
+        "coordinates": [
+          48.14485692718146,
+          16.384636819171362
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "24,37",
+        "indexX": 24,
+        "indexY": 37,
+        "coordinates": [
+          48.14485692718146,
+          16.390019484859085
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    },
+    {
+      "source": {
+        "name": "24,37",
+        "indexX": 24,
+        "indexY": 37,
+        "coordinates": [
+          48.14485692718146,
+          16.390019484859085
+        ],
+        "stationName": null,
+        "taken": true
+      },
+      "destination": {
+        "name": "25,38",
+        "indexX": 25,
+        "indexY": 38,
+        "coordinates": [
+          48.14127149641089,
+          16.395402150546808
+        ],
+        "stationName": "Oberlaa",
+        "taken": true
+      },
+      "bendCost": "C_180",
+      "costs": 1.7976931348623157E308
+    }
+  ]
+]

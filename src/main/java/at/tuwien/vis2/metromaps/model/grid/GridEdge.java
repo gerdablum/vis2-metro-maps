@@ -62,7 +62,7 @@ public class GridEdge {
             return costs;
         }
         this.bendCost = newBendCost;
-        costs = this.bendCost.getWeight() * offsetCosts;    // instead of addition
+        costs = this.bendCost.getWeight() + offsetCosts;    // instead of addition
         return costs;
     }
 
