@@ -66,17 +66,24 @@ public class GridEdge {
         return costs;
     }
 
+    public void reverse() {
+        GridVertex temp = this.destination;
+        this.destination = this.source;
+        this.source = temp;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GridEdge gridEdge = (GridEdge) o;
-        return Objects.equals(source, gridEdge.source) && Objects.equals(destination, gridEdge.destination);
+        return Objects.equals(source, gridEdge.source) && Objects.equals(destination, gridEdge.destination) ||
+                Objects.equals(source, gridEdge.destination) && Objects.equals(destination, gridEdge.source);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(source, destination);
+        return Objects.hash(source, destination) + Objects.hash(destination, source);
     }
 
     @Override

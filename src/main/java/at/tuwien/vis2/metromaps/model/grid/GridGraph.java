@@ -10,6 +10,7 @@ import org.jgrapht.graph.builder.GraphTypeBuilder;
 import org.jgrapht.traverse.DepthFirstIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.RouteMatcher;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -126,25 +127,34 @@ public class GridGraph {
                     Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
                     double offsetcosts = calculateDistancePenalty(targetFromInputGraph.getCoordinates(), vertex.getCoordinates());
                     //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceTarget + " gets penalty " + penalty);
-                    UpdateGridGraphCost(edgesCandidates, offsetcosts);
+                    edgesCandidates.forEach(edge ->edge.updateCosts(offsetcosts));
                 }
             }
         });
-        List<GridEdge> shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates, sourceFromInputGraph.getName()), targetCandidates);
-
+        GraphPath<GridVertex, GridEdge> shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates, sourceFromInputGraph.getName()), targetCandidates);
+       if (shortestPath == null) {
+           return new ArrayList<>();
+       }
         // set already used edges to inf and mark grid edge as taken
-        shortestPath.forEach(edge -> {
-            updateBendCosts(gridGraph.outgoingEdgesOf(edge.getDestination()), edge);
-            edge.getSource().setTaken();
-            // TODO cost update has no effect. maybe something is wrong with source/target? Or just the calculation..
-        });
-        logger.info("routed a path from " + shortestPath.get(0).getSource().getName() + " to " +
-                shortestPath.get(shortestPath.size()-1).getDestination().getName() + " with " + shortestPath.size() + " steps");
-        shortestPath.get(0).getSource().setTakenWith(sourceFromInputGraph.getName());
-        shortestPath.get(shortestPath.size()-1).getDestination().setTakenWith(targetFromInputGraph.getName());
+        shortestPath.getEdgeList().forEach(GridEdge::setCostsInf);
+        List<GridVertex> vertexList = shortestPath.getVertexList();
+        for (int i = 1; i < vertexList.size(); i++) {
+            GridVertex vertex = vertexList.get(i);
+            GridVertex previous = vertexList.get(i - 1);
+            vertex.setTaken();
+            previous.setTaken();
+            GridEdge incomingEdge = gridGraph.getEdge(previous, vertex);
+            updateBendCosts(gridGraph.outgoingEdgesOf(vertex), incomingEdge);
+        }
+
+
+        logger.info("routed a path from " + shortestPath.getStartVertex().getName() + " to " +
+                shortestPath.getEndVertex().getName() + " with " + shortestPath.getEdgeList().size() + " steps");
+        shortestPath.getStartVertex().setTakenWith(sourceFromInputGraph.getName());
+        shortestPath.getEndVertex().setTakenWith(targetFromInputGraph.getName());
 
         // TODO all bend edges (edges in between ingoing and outgoing path of a vertex - smaller angle) have cost inf
-        return shortestPath;
+        return shortestPath.getEdgeList();
     }
 
     private void UpdateGridGraphCost(Set<GridEdge> edgesCandidates, double penalty) {
@@ -169,6 +179,7 @@ public class GridGraph {
         outgoingEdges.forEach(e -> {
             int neighbourCenterX = e.getSource().getIndexX();
             int neighbourCenterY = e.getSource().getIndexY();
+
             int neighbourOutgoingX = e.getDestination().getIndexX();
             int neighbourOutgoingY = e.getDestination().getIndexY();
 
@@ -206,7 +217,7 @@ public class GridGraph {
 
     }
 
-    private List<GridEdge> getShortestPathBetweenTwoSets(Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates) {
+    private GraphPath<GridVertex, GridEdge> getShortestPathBetweenTwoSets(Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates) {
         double shortestDistance = Double.MAX_VALUE;
         GridVertex finalSource = null;
         GridVertex finalTarget = null;
@@ -224,15 +235,14 @@ public class GridGraph {
                 }
             }
         }
-        // TODO: maybe update BendCosts inside Dijkstra
         if (shortestPath == null) {
             logger.warn("No shortest path found!");
-            return new ArrayList<>();
+            return shortestPath;
         }
         // The path source destination direction can be reversed (because path is undirected I guess)
         List<GridEdge> pathList = shortestPath.getEdgeList();
-        if (!finalSource.equals(pathList.get(0).getSource())) {
-            Collections.reverse(pathList);
+        if (finalSource.equals(pathList.get(0).getDestination()) && finalTarget.equals(pathList.get(pathList.size()-1).getSource())) {
+            pathList.forEach(GridEdge::reverse);
         }
         logger.info("path list first edge source:" +
                 shortestPath.getEdgeList().get(0).getSource().getName() +
@@ -241,7 +251,7 @@ public class GridGraph {
                 shortestPath.getEdgeList().get(shortestPath.getEdgeList().size() -1).getDestination().getName() +
                 " shortest path chosen destination:" +
                 finalTarget.getName());
-        return pathList;
+        return shortestPath;
     }
 
     private double getTotalWeight(List<GridEdge> edgeList) {
