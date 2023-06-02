@@ -10,7 +10,6 @@ import org.jgrapht.graph.builder.GraphTypeBuilder;
 import org.jgrapht.traverse.DepthFirstIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.RouteMatcher;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,9 +41,7 @@ public class GridGraph {
 
                 coordinates = new double[]{leftUpper[0] - stepSizeLat*x, leftUpper[1] + stepSizeLon*y};
                 gridGraph.addVertex(new GridVertex(x+","+y, x, y, coordinates));
-                if (coordinates[0] == 48.27751786569251 && coordinates[1] == 16.452139552735247) {
-                    logger.info("Alarm! Weird vertex inserted!");
-                }
+
             }
         }
         // add edges
@@ -81,13 +78,13 @@ public class GridGraph {
                             .filter(vertex -> vertex.getIndexY() == finalY-1 && vertex.getIndexX() == finalX-1).findFirst();
 
                     vertex12.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_180)));
-                    vertex2.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_45)));
-                    vertex3.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_90)));
-                    vertex4.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_135)));
+                    vertex2.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_180)));
+                    vertex3.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_180)));
+                    vertex4.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_180)));
                     vertex6.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_180)));
-                    vertex8.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_135)));
-                    vertex9.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_90)));
-                    vertex10.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_45)));
+                    vertex8.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_180)));
+                    vertex9.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_180)));
+                    vertex10.ifPresent(v -> gridGraph.addEdge(currentVertex.get(), v, new GridEdge(currentVertex.get(), v, GridEdge.BendCost.C_180)));
                 }
             }
 
@@ -136,7 +133,10 @@ public class GridGraph {
            return new ArrayList<>();
        }
         // set already used edges to inf and mark grid edge as taken
-        shortestPath.getEdgeList().forEach(GridEdge::setCostsInf);
+        shortestPath.getEdgeList().forEach(gridEdge -> {
+            gridEdge.setCostsInf();
+            gridGraph.setEdgeWeight(gridEdge, gridEdge.getCosts());
+        });
         List<GridVertex> vertexList = shortestPath.getVertexList();
         for (int i = 1; i < vertexList.size(); i++) {
             GridVertex vertex = vertexList.get(i);
@@ -173,8 +173,8 @@ public class GridGraph {
         int incomingVertexX = incomingEdge.getSource().getIndexX();
         int incomingVertexY = incomingEdge.getSource().getIndexY();
 
-        int incomingEdgeDirectionX = centerVertexX - incomingVertexX;
-        int incomingEdgeDirectionY = centerVertexY - incomingVertexY;
+        int incomingEdgeDirectionX = incomingVertexX - centerVertexX;
+        int incomingEdgeDirectionY = incomingVertexY - centerVertexY;
 
         outgoingEdges.forEach(e -> {
             int neighbourCenterX = e.getSource().getIndexX();
@@ -183,8 +183,19 @@ public class GridGraph {
             int neighbourOutgoingX = e.getDestination().getIndexX();
             int neighbourOutgoingY = e.getDestination().getIndexY();
 
-            int neighbourDirectionX = neighbourCenterX - neighbourOutgoingX;
-            int neighbourDirectionY = neighbourCenterY - neighbourOutgoingY;
+            // directions must match!!!
+            if (centerVertexX == neighbourOutgoingX && centerVertexY == neighbourOutgoingY) {
+                int tempx = neighbourCenterX;
+                int tempy = neighbourCenterY;
+                neighbourCenterX = neighbourOutgoingX;
+                neighbourCenterY = neighbourOutgoingY;
+                neighbourOutgoingX = tempx;
+                neighbourOutgoingY = tempy;
+            }
+
+            int neighbourDirectionX = neighbourOutgoingX - neighbourCenterX;
+            int neighbourDirectionY = neighbourOutgoingY - neighbourCenterY;
+
 
             double angle1 = Math.atan2(incomingEdgeDirectionY, incomingEdgeDirectionX);
             double angle2 = Math.atan2(neighbourDirectionY, neighbourDirectionX);
@@ -229,9 +240,6 @@ public class GridGraph {
                 if (length < shortestDistance) {
                     shortestPath = path;
                     shortestDistance = length;
-                    finalSource = source;
-                    finalTarget = target;
-
                 }
             }
         }
@@ -241,16 +249,17 @@ public class GridGraph {
         }
         // The path source destination direction can be reversed (because path is undirected I guess)
         List<GridEdge> pathList = shortestPath.getEdgeList();
-        if (finalSource.equals(pathList.get(0).getDestination()) && finalTarget.equals(pathList.get(pathList.size()-1).getSource())) {
-            pathList.forEach(GridEdge::reverse);
+        if (!shortestPath.getStartVertex().equals(pathList.get(0).getSource())) {
+            pathList.get(0).reverse();
         }
-        logger.info("path list first edge source:" +
-                shortestPath.getEdgeList().get(0).getSource().getName() +
-                " shortest path chosen source:" + finalSource.getName());
-        logger.info("path list last edge destination:" +
-                shortestPath.getEdgeList().get(shortestPath.getEdgeList().size() -1).getDestination().getName() +
-                " shortest path chosen destination:" +
-                finalTarget.getName());
+        for (int i = 0; i < pathList.size() - 1; i++) {
+            GridEdge current = pathList.get(i);
+            GridEdge next = pathList.get(i + 1);
+            if (!current.getDestination().equals(next.getSource())) {
+                next.reverse();
+            }
+        }
+
         return shortestPath;
     }
 

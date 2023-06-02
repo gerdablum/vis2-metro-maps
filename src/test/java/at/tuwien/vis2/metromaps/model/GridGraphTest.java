@@ -14,6 +14,8 @@ import org.springframework.core.io.Resource;
 
 import java.util.*;
 
+import static at.tuwien.vis2.metromaps.model.grid.GridEdge.BendCost.C_135;
+import static at.tuwien.vis2.metromaps.model.grid.GridEdge.BendCost.C_90;
 import static org.junit.jupiter.api.Assertions.*;
 
 class GridGraphTest {
@@ -58,16 +60,16 @@ class GridGraphTest {
         GridVertex upper = new GridVertex("2", 1, 0, new double[2]);
         GridVertex lower = new GridVertex("3", 1, 2, new double[2]);
         GridVertex left = new GridVertex("4", 0, 1, new double[2]);
+        GridVertex right = new GridVertex("5", 2, 1, new double[2]);
         GridVertex rightUpper = new GridVertex("5", 2, 0, new double[2]);
-        GridEdge gridEdgeIncoming = new GridEdge(rightUpper, center, GridEdge.BendCost.C_180);
-        GridEdge gridEdgeOutgoing1 = new GridEdge(center, lower, GridEdge.BendCost.C_90);
-        GridEdge gridEdgeOutgoing2 = new GridEdge(center, left, GridEdge.BendCost.C_90);
+        GridEdge gridEdgeIncoming = new GridEdge(lower, center, GridEdge.BendCost.C_180);
+        GridEdge gridEdgeOutgoing1 = new GridEdge(right, center, C_135);
+        GridEdge gridEdgeOutgoing2 = new GridEdge(center, left, C_90);
         GridEdge gridEdgeOutgoing3 = new GridEdge(center, upper, GridEdge.BendCost.C_180);
         Set<GridEdge> outgoing = new HashSet<GridEdge>();
         outgoing.add(gridEdgeOutgoing1);
-        outgoing.add(gridEdgeOutgoing2);
-        outgoing.add(gridEdgeOutgoing3);
         //GridGraph.updateBendCosts(outgoing, gridEdgeIncoming);
+        //assertEquals(gridEdgeOutgoing1.getBendCost(), C_90);
     }
 
 

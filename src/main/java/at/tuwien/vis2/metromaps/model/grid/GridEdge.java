@@ -44,9 +44,13 @@ public class GridEdge {
         return bendCost;
     }
 
-    public void updateCosts(double offsetCosts) {
+    public double updateCosts(double offsetCosts) {
+        if (costs == Double.MAX_VALUE) {
+            return costs;
+        }
         this.offsetCosts = offsetCosts;
-        costs = this.bendCost.getWeight() * offsetCosts;    // instead of addition
+        costs = this.bendCost.getWeight() + offsetCosts;// instead of addition
+        return costs;
     }
 
     public void setCostsInf() {
