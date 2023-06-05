@@ -97,44 +97,53 @@ public class GridGraph {
         numberOfVerticesVertical = (int) Math.ceil(heightInputGraph / d);
     }
 
-    public List<GridEdge> processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph) {
-
+    public List<GridEdge> processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph, String lineName) {
+        if (sourceFromInputGraph.getName().equals("H�tteldorfer Stra�e") || targetFromInputGraph.getName().equals("H�tteldorfer Stra�e")) {
+            int a = 1;
+        }
         double[] sourcePosition = sourceFromInputGraph.getCoordinates();
         double[] targetPosition = targetFromInputGraph.getCoordinates();
         logger.info("Routing a path from " + sourceFromInputGraph.getName() + " to " + targetFromInputGraph.getName());
         Set<GridVertex> sourceCandidates = new HashSet<>();
         Set<GridVertex> targetCandidates = new HashSet<>();
+
         gridGraph.vertexSet().forEach( vertex -> {
             // sink and source candidates according to set distance r
             double distanceSource = Utils.getDistanceInKmTo(sourcePosition, vertex.getCoordinates());
             double distanceTarget = Utils.getDistanceInKmTo(targetPosition, vertex.getCoordinates());
+            if (vertex.getStationName() != null && vertex.getStationName().equals(sourceFromInputGraph.getName())) {
+                sourceCandidates.add(vertex);
+            } else {
+                // build voroni diagram to deal with overlapping sink and target candidates
+                if (distanceSource < r || distanceTarget < r) {
+                    if (distanceSource < distanceTarget) {
+                        sourceCandidates.add(vertex);
+                        // set penalty for source
+                        Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
+                        double offsetcosts = calculateDistancePenalty(sourceFromInputGraph.getCoordinates(), vertex.getCoordinates());
+                        //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceSource + " gets penalty " + penalty);
+                        UpdateGridGraphCost(edgesCandidates, offsetcosts);
 
-            // build voroni diagram to deal with overlapping sink and target candidates
-            if (distanceSource < r || distanceTarget < r) {
-                if (distanceSource < distanceTarget) {
-                    sourceCandidates.add(vertex);
-                    // set penalty for source
-                    Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
-                    double offsetcosts = calculateDistancePenalty(sourceFromInputGraph.getCoordinates(), vertex.getCoordinates());
-                    //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceSource + " gets penalty " + penalty);
-                    UpdateGridGraphCost(edgesCandidates, offsetcosts);
-
-                } else {
-                    targetCandidates.add(vertex);
-                    // set penalty for targets
-                    Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
-                    double offsetcosts = calculateDistancePenalty(targetFromInputGraph.getCoordinates(), vertex.getCoordinates());
-                    //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceTarget + " gets penalty " + penalty);
-                    edgesCandidates.forEach(edge ->edge.updateCosts(offsetcosts));
+                    } else {
+                        targetCandidates.add(vertex);
+                        // set penalty for targets
+                        Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
+                        double offsetcosts = calculateDistancePenalty(targetFromInputGraph.getCoordinates(), vertex.getCoordinates());
+                        //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceTarget + " gets penalty " + penalty);
+                        edgesCandidates.forEach(edge ->edge.updateCosts(offsetcosts));
+                    }
                 }
+
             }
         });
-        GraphPath<GridVertex, GridEdge> shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates, sourceFromInputGraph.getName()), targetCandidates);
+        GraphPath<GridVertex, GridEdge> shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates, sourceFromInputGraph.getName()),
+                filterForAlreadyUsedVertices(targetCandidates, targetFromInputGraph.getName()));
        if (shortestPath == null) {
            return new ArrayList<>();
        }
         // set already used edges to inf and mark grid edge as taken
         shortestPath.getEdgeList().forEach(gridEdge -> {
+            gridEdge.setTaken(edgeFromInputGraph.getLineNames(), lineName);
             gridEdge.setCostsInf();
             gridGraph.setEdgeWeight(gridEdge, gridEdge.getCosts());
         });
@@ -166,7 +175,6 @@ public class GridGraph {
     }
 
     public void updateBendCosts(Set<GridEdge> outgoingEdges, GridEdge incomingEdge) {
-        //logger.info("Center vertex: " + incomingEdge.getSource().getName() + " to " + incomingEdge.getDestination().getName());
         incomingEdge.setCostsInf();
         int centerVertexX = incomingEdge.getDestination().getIndexX();
         int centerVertexY = incomingEdge.getDestination().getIndexY();
@@ -230,7 +238,7 @@ public class GridGraph {
         }
         Set<GridVertex> takenWithSourceStation = taken.stream().filter(g -> sourceStationName.equals(g.getStationName())).collect(Collectors.toSet());
         if (takenWithSourceStation.isEmpty()) {
-            return taken;
+            return sourceCandidates;
         }
         return takenWithSourceStation;
 
@@ -258,13 +266,13 @@ public class GridGraph {
         // The path source destination direction can be reversed (because path is undirected I guess)
         List<GridEdge> pathList = shortestPath.getEdgeList();
         if (!shortestPath.getStartVertex().equals(pathList.get(0).getSource())) {
-            //pathList.get(0).reverse();
+            pathList.get(0).reverse();
         }
         for (int i = 0; i < pathList.size() - 1; i++) {
             GridEdge current = pathList.get(i);
             GridEdge next = pathList.get(i + 1);
             if (!current.getDestination().equals(next.getSource())) {
-                //next.reverse();
+                next.reverse();
             }
         }
 
@@ -301,14 +309,14 @@ public class GridGraph {
         return gridGraph.edgeSet();
    }
 
-    public void reopenSinkEdges() {
-        gridGraph.vertexSet().forEach(gridVertex -> {
-            if (gridVertex.isTaken() && gridVertex.getStationName() != null) {
-                Set<GridEdge> adjacentEdged = gridGraph.outgoingEdgesOf(gridVertex);
-                adjacentEdged.forEach(gridEdge -> {
-                    gridEdge.resetCosts();
-                });
+    public void reopenSinkEdgesFor(String lineName, List<List<GridEdge>> allPaths) {
+        List<GridEdge> paths = allPaths.stream().flatMap(Collection::stream).toList();
+        for (GridEdge edge: paths) {
+            if (edge.isClosedForLine(lineName)) {
+                edge.setCostsInf();
+            } else {
+                edge.resetCosts();
             }
-        });
+        }
     }
 }

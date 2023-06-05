@@ -1,9 +1,18 @@
 package at.tuwien.vis2.metromaps.model.grid;
 
-import java.util.Objects;
+import java.util.*;
 
 // TODO this class is to wrap default edge and prevent serializing errors with jackson
 public class GridEdge {
+
+    public boolean isClosedForLine(String lineName) {
+        Boolean isLineTaken = this.takenLines.get(lineName);
+        if (isLineTaken == null) {
+            return true;
+        }
+
+        return isLineTaken;
+    }
 
     public enum BendCost {
         C_45(2),
@@ -26,10 +35,13 @@ public class GridEdge {
     private double offsetCosts = 1;
     private double costs = 1;
 
+    private Map<String, Boolean> takenLines;
+
     public GridEdge(GridVertex source, GridVertex destination, BendCost bendCost ) {
         this.source = source;
         this.destination = destination;
         this.bendCost = bendCost;
+        takenLines = new HashMap<>();
     }
 
     public GridVertex getSource() {
@@ -51,6 +63,15 @@ public class GridEdge {
         this.offsetCosts = offsetCosts;
         costs = this.bendCost.getWeight() + offsetCosts;// instead of addition
         return costs;
+    }
+
+    public void setTaken(List<String> lines, String lineName) {
+        for (String line : lines) {
+            if (takenLines.get(line) == null) {
+                takenLines.put(line, line.equals(lineName));
+            }
+        }
+        takenLines.put(lineName, true);
     }
 
     public void setCostsInf() {

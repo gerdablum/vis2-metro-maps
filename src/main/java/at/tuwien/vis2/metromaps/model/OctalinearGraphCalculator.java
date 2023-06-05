@@ -42,12 +42,13 @@ public class OctalinearGraphCalculator {
 
         List<List<GridEdge>> allPaths = new ArrayList<>();
         for (String lineName: allLineNames) {
+            gridGraph.reopenSinkEdgesFor(lineName, allPaths);
             List<InputLineEdge> edgesSorted = metroDataProvider.getOrderedEdgesForLine(lineName, city);
             for (InputLineEdge edge : edgesSorted) {
-                List<GridEdge> path = gridGraph.processInputEdge(edge, edge.getStartStation(), edge.getEndStation());
+                List<GridEdge> path = gridGraph.processInputEdge(edge, edge.getStartStation(), edge.getEndStation(), lineName);
                 allPaths.add(path);
             }
-            //gridGraph.reopenSinkEdges();
+
         }
 
         gridgraphs.put(city, gridGraph);
@@ -56,7 +57,6 @@ public class OctalinearGraphCalculator {
     }
 
     public GridGraph getGridGraph(String city) {
-        calculateOutputGraph(city);
         return  gridgraphs.get(city);
     }
 }

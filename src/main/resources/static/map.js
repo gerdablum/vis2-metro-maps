@@ -23,7 +23,7 @@ function loadMap() {
     if (cityData) { map.setView([cityData.lat, cityData.lon], cityData.zoom); }
     addMapLayer();
     fetchData(cityData.name);
-    fetchGrid(cityData.name);
+    fetchOctilinear(cityData.name);
     zoomEffect();
 }
 function zoomEffect() {
@@ -68,40 +68,7 @@ L.control.browserPrint({
 */
 
 
-function fetchGrid(cityName) {
-    axios.get('/' + cityName + '/gridgraph')          // ' + selectedCity + '
-    .then(function (response) {
-        gridEdges = [];
-        gridNode = [];
-        for (var gridEdge of response.data.edges) {
-            var text = gridEdge.bendCost;
-             gridEdges.push(L.polyline([gridEdge.source.coordinates,
-             gridEdge.destination.coordinates], {color: 'grey', opacity: 0.5, weight: 10}).bindTooltip(text).openTooltip());
-        }
-        for (var gridNode of response.data.gridVertices) {
-        var text = gridNode.name + ", " + gridNode.stationName + ", " + gridNode.coordinates[0] + gridNode.coordinates[1];
-            var color =  {color: 'blue'}
-            if (gridNode.stationName !== null) {
-                color =  {color: 'red'}
-            }
-            gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(text).openTooltip());
-            // TODO: DELETE: just for test reasons:
-            if (gridNode.stationName === "Stephansplatz") {
-                var labelOptions = {
-                    className: 'label-class', // CSS-Klasse für das Label-Styling
-                    permanent: true, // Tooltip immer anzeigen
-                    direction: 'center', // Position des Tooltips relativ zum Marker
-                    opacity: 1, // Opazität des Tooltips
-                    interactive: false // Keine Interaktion mit dem Tooltip ermöglichen
-                };
-                gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(gridNode.stationName, labelOptions).openTooltip());
-            }
-        }
-    })
-    .catch(function (error) {
-            // handle error
-            console.log(error);
-          })
+function fetchOctilinear(cityName) {
 
     axios.get('/' + cityName + '/octilinear')
         .then(function (response) {
@@ -115,11 +82,49 @@ function fetchGrid(cityName) {
                 }
 
             }
+            fetchGrid(cityName)
         })
         .catch(function (error) {
                 // handle error
                 console.log(error);
               })
+}
+
+function fetchGrid(cityName) {
+
+    axios.get('/' + cityName + '/gridgraph')          // ' + selectedCity + '
+        .then(function (response) {
+            gridEdges = [];
+            gridNode = [];
+            for (var gridEdge of response.data.edges) {
+                var text = gridEdge.bendCost;
+                gridEdges.push(L.polyline([gridEdge.source.coordinates,
+                    gridEdge.destination.coordinates], {color: 'grey', opacity: 0.5, weight: 10}).bindTooltip(text).openTooltip());
+            }
+            for (var gridNode of response.data.gridVertices) {
+                var text = gridNode.name + ", " + gridNode.stationName + ", " + gridNode.coordinates[0] + gridNode.coordinates[1];
+                var color =  {color: 'blue'}
+                if (gridNode.stationName !== null) {
+                    color =  {color: 'red'}
+                }
+                gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(text).openTooltip());
+                // TODO: DELETE: just for test reasons:
+                if (gridNode.stationName === "Stephansplatz") {
+                    var labelOptions = {
+                        className: 'label-class', // CSS-Klasse für das Label-Styling
+                        permanent: true, // Tooltip immer anzeigen
+                        direction: 'center', // Position des Tooltips relativ zum Marker
+                        opacity: 1, // Opazität des Tooltips
+                        interactive: false // Keine Interaktion mit dem Tooltip ermöglichen
+                    };
+                    gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(gridNode.stationName, labelOptions).openTooltip());
+                }
+            }
+        })
+        .catch(function (error) {
+            // handle error
+            console.log(error);
+        })
 }
 
 function fetchData(cityName) {
