@@ -1,6 +1,19 @@
 package at.tuwien.vis2.metromaps.model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class Utils {
+
+    public static final String vienna = "Vienna";
+    public static final String berlin = "Berlin";
+    public static final String freiburg = "Freiburg";
+    public static final String london = "London";
+    public static final String nyc = "New York";
+
+    public static final List<String> allCities = Arrays.asList(vienna, berlin, freiburg, london, nyc);
+
 
     public static double getDistanceInKmTo(double[] coordinatesRef, double[] coordinates) {
         double latRefRadian = Math.toRadians(coordinatesRef[0]);
@@ -17,5 +30,13 @@ public class Utils {
         // Radius of earth in kilometers
         double r = 6378.1;
         return c * r;
+    }
+
+    public static double[] convertEspg3857ToLatLon(double x, double y) {
+        x = (x * 180) / 20037508.34;
+        y = (y * 180) / 20037508.34;
+
+        y = (Math.atan(Math.pow(Math.E, y * (Math.PI / 180))) * 360) / Math.PI - 90;
+        return new double[] {x, y};
     }
 }

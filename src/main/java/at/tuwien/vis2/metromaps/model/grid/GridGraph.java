@@ -18,7 +18,7 @@ public class GridGraph {
 
     private final Graph<GridVertex, GridEdge> gridGraph;
     private double d = 0.4; // threshold (in km) we would like to have between each station
-    private double r = 0.8; // distance between source and target candidates to match input edges onto grid
+    private double r = 2; // distance between source and target candidates to match input edges onto grid
     private double costM = 0.5;  // move penalty
     private double costH = 1; // hop cost of using a grid edge
     private int numberOfVerticesHorizontal;
@@ -258,13 +258,13 @@ public class GridGraph {
         // The path source destination direction can be reversed (because path is undirected I guess)
         List<GridEdge> pathList = shortestPath.getEdgeList();
         if (!shortestPath.getStartVertex().equals(pathList.get(0).getSource())) {
-            pathList.get(0).reverse();
+            //pathList.get(0).reverse();
         }
         for (int i = 0; i < pathList.size() - 1; i++) {
             GridEdge current = pathList.get(i);
             GridEdge next = pathList.get(i + 1);
             if (!current.getDestination().equals(next.getSource())) {
-                next.reverse();
+                //next.reverse();
             }
         }
 
@@ -300,4 +300,15 @@ public class GridGraph {
    public Set<GridEdge> getEdges() {
         return gridGraph.edgeSet();
    }
+
+    public void reopenSinkEdges() {
+        gridGraph.vertexSet().forEach(gridVertex -> {
+            if (gridVertex.isTaken() && gridVertex.getStationName() != null) {
+                Set<GridEdge> adjacentEdged = gridGraph.outgoingEdgesOf(gridVertex);
+                adjacentEdged.forEach(gridEdge -> {
+                    gridEdge.resetCosts();
+                });
+            }
+        });
+    }
 }

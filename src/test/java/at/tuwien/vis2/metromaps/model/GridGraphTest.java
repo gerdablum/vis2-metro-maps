@@ -1,6 +1,5 @@
 package at.tuwien.vis2.metromaps.model;
 
-import at.tuwien.vis2.metromaps.api.M10Service;
 import at.tuwien.vis2.metromaps.model.grid.GridEdge;
 import at.tuwien.vis2.metromaps.model.grid.GridGraph;
 import at.tuwien.vis2.metromaps.model.grid.GridVertex;
@@ -8,9 +7,6 @@ import at.tuwien.vis2.metromaps.model.input.InputGraph;
 import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
 import at.tuwien.vis2.metromaps.model.input.InputStation;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.Resource;
 
 import java.util.*;
 

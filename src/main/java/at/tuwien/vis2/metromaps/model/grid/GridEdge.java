@@ -57,6 +57,11 @@ public class GridEdge {
         costs = Double.MAX_VALUE;
     }
 
+    public void resetCosts() {
+        costs = 1;
+        bendCost = BendCost.C_180;
+    }
+
     public double updateCosts(BendCost newBendCost) {
         if (costs == Double.MAX_VALUE) {
             return costs;

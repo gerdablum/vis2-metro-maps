@@ -18,7 +18,11 @@ public class InputStation {
     private ProcessingState processingState;
 
     public InputStation(String name, String id, double[] coordinates, List<String> lineNames) {
-        this.name = name;
+        if (name == null) {
+            this.name = id;
+        } else {
+            this.name = name;
+        }
         this.id = id;
         this.coordinates = coordinates;
         this.lineNames = lineNames;

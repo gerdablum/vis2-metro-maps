@@ -30,32 +30,28 @@ public class FakeDataService implements MetroDataProvider {
     }
 
     @Override
-    public List<InputStation> getAllStations() {
+    public List<InputStation> getAllStations(String city) {
         return stations;
     }
 
     @Override
-    public List<InputLineEdge> getAllGeograficEdges() {
+    public List<InputLineEdge> getAllGeograficEdges(String city) {
+        return this.edges;
+    }
+
+
+    @Override
+    public List<InputLineEdge> getAllGeograficEdgesForLine(String lineId, String city) {
         return this.edges;
     }
 
     @Override
-    public List<InputStation> getAllStationsForLine(String lineId) {
-        return this.stations;
-    }
-
-    @Override
-    public List<InputLineEdge> getEdgesWithoutStationInformation(String lineId) {
+    public List<InputLineEdge> getOrderedEdgesForLine(String lineId, String city) {
         return this.edges;
     }
 
     @Override
-    public List<InputStation> getOrderedStationsForLine(String lineId) {
-        return this.stations;
-    }
-
-    @Override
-    public List<InputLineEdge> getOrderedEdgesForLine(String lineId) {
-        return this.edges;
+    public List<String> getAllLineNames(String city) {
+        return null;
     }
 }

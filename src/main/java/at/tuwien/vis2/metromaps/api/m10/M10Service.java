@@ -1,4 +1,4 @@
-package at.tuwien.vis2.metromaps.api;
+package at.tuwien.vis2.metromaps.api.m10;
 
 import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
 import at.tuwien.vis2.metromaps.model.MetroDataProvider;
@@ -56,40 +56,44 @@ public class M10Service implements MetroDataProvider {
             }
         } catch (IOException e) {
             logger.error("Error reading vienna json file", e);
+            throw new RuntimeException(e);
         }
     }
     @Override
-    public List<InputStation> getAllStations() {
+    public List<InputStation> getAllStations(String city) {
         return allStations.values().stream().toList();
     }
 
     @Override
-    public List<InputLineEdge> getAllGeograficEdges() {
+    public List<InputLineEdge> getAllGeograficEdges(String city) {
         return allEdges.values().stream().toList();
     }
 
-    @Override
-    public List<InputStation> getAllStationsForLine(String lineId) {
-        return getAllStations().stream()
+    private List<InputStation> getAllStationsForLine(String lineId, String city) {
+        return getAllStations(city).stream()
                 .filter(station -> station.getLineNames().contains(lineId)).toList();
     }
 
     @Override
-    public List<InputLineEdge> getEdgesWithoutStationInformation(String lineId) {
+    public List<InputLineEdge> getAllGeograficEdgesForLine(String lineId, String city) {
         return allEdges.values().stream()
                 .filter(edge -> edge.getLineNames().contains(lineId))
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<InputStation> getOrderedStationsForLine(String lineId) {
-        var allStationsForLine = getAllStationsForLine(lineId);
+    private List<InputStation> getOrderedStationsForLine(String lineId, String city) {
+        var allStationsForLine = getAllStationsForLine(lineId, city);
         return getOrderedStations(allStationsForLine);
     }
 
     @Override
-    public List<InputLineEdge> getOrderedEdgesForLine(String lineId) {
-        var orderedStations = getOrderedStationsForLine(lineId);
+    public List<String> getAllLineNames(String city) {
+        return null;
+    }
+
+    @Override
+    public List<InputLineEdge> getOrderedEdgesForLine(String lineId, String city) {
+        var orderedStations = getOrderedStationsForLine(lineId, city);
         var orderedEdges = new ArrayList<InputLineEdge>();
         for (int i = 0; i < orderedStations.size() -1; i++) {
             var currentStation = orderedStations.get(i);

@@ -1,5 +1,7 @@
 package at.tuwien.vis2.metromaps.model.input;
 
+import at.tuwien.vis2.metromaps.model.grid.GridVertex;
+
 import java.util.HashSet;
 import java.util.List;
 
@@ -69,5 +71,11 @@ public class InputLineEdge {
             return hasSameLineEdges && (this.startStation.equals(((InputLineEdge) obj).getStartStation()) && this.endStation.equals(((InputLineEdge) obj).getEndStation()));
         }
         return false;
+    }
+
+    public void reverse() {
+        InputStation temp = this.endStation;
+        this.endStation = this.startStation;
+        this.startStation = temp;
     }
 }

@@ -6,11 +6,11 @@ var gridEdges = [];
 var mapLayer = null;
 var selectedCity = "vienna";
 var viewArray = {
-    vienna: { lat: 48.210033, lon: 16.363449, zoom: 13 },
-    berlin: { lat: 52.52437, lon: 13.41053, zoom: 13 },
-    freiburg: { lat: 47.997791, lon: 7.842609, zoom: 13 },
-    london: { lat: 51.507359, lon: -0.136439, zoom: 13 },
-    nyc_subway: { lat: 40.730610, lon: -73.935242, zoom: 11 }
+    vienna: { lat: 48.210033, lon: 16.363449, zoom: 13, name: "Vienna" },
+    berlin: { lat: 52.52437, lon: 13.41053, zoom: 13, name: "Berlin" },
+    freiburg: { lat: 47.997791, lon: 7.842609, zoom: 13, name: "Freiburg"},
+    london: { lat: 51.507359, lon: -0.136439, zoom: 13, name: "London" },
+    nyc_subway: { lat: 40.730610, lon: -73.935242, zoom: 11, name: "New York" }
 };
 
 loadMap();
@@ -22,8 +22,8 @@ function loadMap() {
     var cityData = viewArray[selectedCity];
     if (cityData) { map.setView([cityData.lat, cityData.lon], cityData.zoom); }
     addMapLayer();
-    fetchData();
-    fetchGrid();
+    fetchData(cityData.name);
+    fetchGrid(cityData.name);
     zoomEffect();
 }
 function zoomEffect() {
@@ -68,8 +68,8 @@ L.control.browserPrint({
 */
 
 
-function fetchGrid() {
-    axios.get('/vienna/gridgraph')          // ' + selectedCity + '
+function fetchGrid(cityName) {
+    axios.get('/' + cityName + '/gridgraph')          // ' + selectedCity + '
     .then(function (response) {
         gridEdges = [];
         gridNode = [];
@@ -86,7 +86,7 @@ function fetchGrid() {
             }
             gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(text).openTooltip());
             // TODO: DELETE: just for test reasons:
-            if (gridNode.stationName == "Stephansplatz") {
+            if (gridNode.stationName === "Stephansplatz") {
                 var labelOptions = {
                     className: 'label-class', // CSS-Klasse für das Label-Styling
                     permanent: true, // Tooltip immer anzeigen
@@ -103,7 +103,7 @@ function fetchGrid() {
             console.log(error);
           })
 
-    axios.get('/vienna/octilinear')
+    axios.get('/' + cityName + '/octilinear')
         .then(function (response) {
             gridEdges = [];
             gridNode = [];
@@ -122,8 +122,8 @@ function fetchGrid() {
               })
 }
 
-function fetchData() {
-    axios.get('/vienna/stations')
+function fetchData(cityName) {
+    axios.get('/' + cityName + '/stations')
       .then(function (response) {
         // handle success
         stationMarker = [];
@@ -137,7 +137,7 @@ function fetchData() {
         console.log(error);
       })
 
-  axios.get('/vienna/lines?lineId=1')
+  axios.get('/' + cityName + '/lines?lineId=1')
        .then(function (response) {
          // handle success
          for (var node of response.data) {
@@ -149,7 +149,7 @@ function fetchData() {
          // handle error
          console.log(error);
        })
-  axios.get('/vienna/lines?lineId=2')
+  axios.get('/' + cityName + '/lines?lineId=2')
       .then(function (response) {
         // handle success
         for (var node of response.data) {
@@ -161,7 +161,7 @@ function fetchData() {
         // handle error
         console.log(error);
       })
-   axios.get('/vienna/lines?lineId=3')
+   axios.get('/' + cityName + '/lines?lineId=3')
          .then(function (response) {
             // handle success
             for (var node of response.data) {
@@ -173,7 +173,7 @@ function fetchData() {
             // handle error
             console.log(error);
           })
-  axios.get('/vienna/lines?lineId=4')
+  axios.get('/' + cityName + '/lines?lineId=4')
            .then(function (response) {
               // handle success
               for (var node of response.data) {
@@ -185,7 +185,7 @@ function fetchData() {
               // handle error
               console.log(error);
             })
-  axios.get('/vienna/lines?lineId=6')
+  axios.get('/' + cityName + '/lines?lineId=6')
               .then(function (response) {
                  // handle success
                  for (var node of response.data) {

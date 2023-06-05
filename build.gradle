@@ -9,6 +9,9 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
 
 repositories {
+//	maven {
+//		url 'https://repo.osgeo.org/repository/release/'
+//	}
 	mavenCentral()
 }
 configurations {
@@ -22,6 +25,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
 	implementation 'org.jgrapht:jgrapht-core:1.5.1'
+//	implementation 'org.geotools:gt-main:29.0'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
