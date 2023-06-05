@@ -4,6 +4,7 @@ var stationMarker = [];
 var gridMarker = [];
 var gridEdges = [];
 var mapLayer = null;
+var browserControl = null;
 var selectedCity = "vienna";
 var viewArray = {
     vienna: { lat: 48.210033, lon: 16.363449, zoom: 13, name: "Vienna" },
@@ -18,12 +19,19 @@ function loadMap() {
     stationMarker = [];
     gridMarker = [];
     gridEdges = [];
-    mapLayer = null;
+    if (mapLayer) {map.removeLayer(mapLayer);}
     var cityData = viewArray[selectedCity];
     if (cityData) { map.setView([cityData.lat, cityData.lon], cityData.zoom); }
+    var pdfOptions = {
+        title: 'Print me!',
+        documentTitle: 'Metro map of ' + cityData.name
+    };
+    if (!browserControl) {
+        browserControl = L.control.browserPrint(pdfOptions).addTo(map);
+    }
     addMapLayer();
-    fetchData(cityData.name);
     fetchOctilinear(cityData.name);
+    fetchData(cityData.name);
     zoomEffect();
 }
 function zoomEffect() {
@@ -34,19 +42,16 @@ function zoomEffect() {
             stationMarker.forEach(a => a.addTo(map));
             gridEdges.forEach(a => a.addTo(map));
             gridMarker.forEach(a => a.addTo(map));
+            console.log("add details!");
         }
         if (zoom <= 12 && stationMarker != null) {
             stationMarker.forEach(a => map.removeLayer(a));
             gridMarker.forEach(a => map.removeLayer(a));
             gridEdges.forEach(a => map.removeLayer(a));
+            console.log("remove details!");
         }
     });
 }
-
-var pdfOptions = {
-
-};
-var browserControl = L.control.browserPrint(pdfOptions).addTo(map);
 
 /*
 var saveAsImage = function () {
@@ -91,7 +96,6 @@ function fetchOctilinear(cityName) {
 }
 
 function fetchGrid(cityName) {
-
     axios.get('/' + cityName + '/gridgraph')          // ' + selectedCity + '
         .then(function (response) {
             gridEdges = [];
@@ -111,11 +115,11 @@ function fetchGrid(cityName) {
                 // TODO: DELETE: just for test reasons:
                 if (gridNode.stationName === "Stephansplatz") {
                     var labelOptions = {
-                        className: 'label-class', // CSS-Klasse für das Label-Styling
-                        permanent: true, // Tooltip immer anzeigen
-                        direction: 'center', // Position des Tooltips relativ zum Marker
-                        opacity: 1, // Opazität des Tooltips
-                        interactive: false // Keine Interaktion mit dem Tooltip ermöglichen
+                        className: 'label-class',
+                        permanent: true,
+                        direction: 'center',
+                        opacity: 1,
+                        interactive: false
                     };
                     gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(gridNode.stationName, labelOptions).openTooltip());
                 }
@@ -128,6 +132,7 @@ function fetchGrid(cityName) {
 }
 
 function fetchData(cityName) {
+    console.log(cityName);
     axios.get('/' + cityName + '/stations')
       .then(function (response) {
         // handle success
@@ -141,7 +146,6 @@ function fetchData(cityName) {
         // handle error
         console.log(error);
       })
-
   axios.get('/' + cityName + '/lines?lineId=1')
        .then(function (response) {
          // handle success
@@ -257,7 +261,6 @@ function toggleButtonState(button) {
 }
 
 function addMapLayer() {
-    console.log("Add map!");
     mapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -289,7 +292,7 @@ dropdownItems.forEach(function(item) {
         const selectedText = item.textContent;
         dropdownButton.textContent = selectedText;
         selectedCity = item.dataset.value;
-        console.log(selectedCity);
+        console.log("selected: " + selectedCity);
         loadMap();
     });
 });
