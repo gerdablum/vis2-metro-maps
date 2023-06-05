@@ -3,3 +3,14 @@ height: 400px;
 width: 80%;
 margin: 0 auto;
 }
+
+#buttonContainer {
+    width: 80%;
+    margin-top: 10px;
+    margin-left: 10%;
+}
+
+.btn-group-toggle,
+.dropdown {
+    margin-top: 10px; /* Abstand zwischen den Elementen hinzufügen */
+}

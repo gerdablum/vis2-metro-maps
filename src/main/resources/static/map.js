@@ -3,34 +3,73 @@ var map = L.map('map').setView([48.210033, 16.363449], 13);
 var stationMarker = [];
 var gridMarker = [];
 var gridEdges = [];
-initMap();
-fetchData();
-fetchGrid();
-map.on("zoomend", function() {
-  var zoom = map.getZoom();
-  console.log(zoom);
-  if (zoom > 12 && stationMarker != null) {
-    stationMarker.forEach(a => a.addTo(map));
-    gridEdges.forEach(a => a.addTo(map));
-    gridMarker.forEach(a => a.addTo(map));
-  }
-  if (zoom <= 12 && stationMarker != null) {
-    stationMarker.forEach(a => map.removeLayer(a));
-    gridMarker.forEach(a => map.removeLayer(a));
-    gridEdges.forEach(a => map.removeLayer(a));
-  }
-});
+var mapLayer = null;
+var selectedCity = "vienna";
+var viewArray = {
+    vienna: { lat: 48.210033, lon: 16.363449, zoom: 13 },
+    berlin: { lat: 52.52437, lon: 13.41053, zoom: 13 },
+    freiburg: { lat: 47.997791, lon: 7.842609, zoom: 13 },
+    london: { lat: 51.507359, lon: -0.136439, zoom: 13 },
+    nyc_subway: { lat: 40.730610, lon: -73.935242, zoom: 11 }
+};
 
-
-function initMap() {
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
+loadMap();
+function loadMap() {
+    stationMarker = [];
+    gridMarker = [];
+    gridEdges = [];
+    mapLayer = null;
+    var cityData = viewArray[selectedCity];
+    if (cityData) { map.setView([cityData.lat, cityData.lon], cityData.zoom); }
+    addMapLayer();
+    fetchData();
+    fetchGrid();
+    zoomEffect();
+}
+function zoomEffect() {
+    map.on("zoomend", function() {
+        var zoom = map.getZoom();
+        console.log(zoom);
+        if (zoom > 12 && stationMarker != null) {
+            stationMarker.forEach(a => a.addTo(map));
+            gridEdges.forEach(a => a.addTo(map));
+            gridMarker.forEach(a => a.addTo(map));
+        }
+        if (zoom <= 12 && stationMarker != null) {
+            stationMarker.forEach(a => map.removeLayer(a));
+            gridMarker.forEach(a => map.removeLayer(a));
+            gridEdges.forEach(a => map.removeLayer(a));
+        }
+    });
 }
 
+var pdfOptions = {
+
+};
+var browserControl = L.control.browserPrint(pdfOptions).addTo(map);
+
+/*
+var saveAsImage = function () {
+    return domtoimage.toPng(document.body)
+        .then(function (dataUrl) {
+            var link = document.createElement('a');
+            link.download = map.printControl.options.documentTitle || "exportedMap" + '.png';
+            link.href = dataUrl;
+            link.click();
+        });
+};
+L.control.browserPrint({
+    documentTitle: "printImage",
+    printModes: [
+        L.BrowserPrint.Mode.Auto("Download PNG"),
+    ],
+    printFunction: saveAsImage
+}).addTo(map);
+*/
+
+
 function fetchGrid() {
-    axios.get('/vienna/gridgraph')
+    axios.get('/vienna/gridgraph')          // ' + selectedCity + '
     .then(function (response) {
         gridEdges = [];
         gridNode = [];
@@ -46,8 +85,18 @@ function fetchGrid() {
                 color =  {color: 'red'}
             }
             gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(text).openTooltip());
+            // TODO: DELETE: just for test reasons:
+            if (gridNode.stationName == "Stephansplatz") {
+                var labelOptions = {
+                    className: 'label-class', // CSS-Klasse für das Label-Styling
+                    permanent: true, // Tooltip immer anzeigen
+                    direction: 'center', // Position des Tooltips relativ zum Marker
+                    opacity: 1, // Opazität des Tooltips
+                    interactive: false // Keine Interaktion mit dem Tooltip ermöglichen
+                };
+                gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(gridNode.stationName, labelOptions).openTooltip());
+            }
         }
-
     })
     .catch(function (error) {
             // handle error
@@ -72,7 +121,6 @@ function fetchGrid() {
                 console.log(error);
               })
 }
-
 
 function fetchData() {
     axios.get('/vienna/stations')
@@ -150,4 +198,94 @@ function fetchData() {
                  console.log(error);
                })
 
+
 }
+//window.jsPDF = window.jspdf.jsPDF;
+/*
+function exportMapToPDF() {
+    console.log("Exportieren!");
+
+    const mapWidth = map.getSize().x;
+    const mapHeight = map.getSize().y;
+
+    const tempDiv = document.createElement('div');
+    tempDiv.style.width = `${mapWidth}px`;
+    tempDiv.style.height = `${mapHeight}px`;
+    document.body.appendChild(tempDiv);
+
+    const scale = 2;
+    const resolution = 1000; // dpi
+
+    leafletImage(map, function(err, canvas) {
+        const scaledCanvas = document.createElement('canvas');
+        scaledCanvas.width = mapWidth * scale;
+        scaledCanvas.height = mapHeight * scale;
+        const context = scaledCanvas.getContext('2d');
+        context.scale(scale, scale);
+        context.drawImage(canvas, 0, 0);
+
+        const dataUrl = scaledCanvas.toDataURL('image/png', resolution / 72);
+
+        const doc = new jsPDF('landscape');
+        doc.text("Hello map fan!", 10, 10);
+        doc.addImage(dataUrl, 'PNG', 5, 15, mapWidth / 3, mapHeight / 3);
+        doc.save('map.pdf');
+
+        document.body.removeChild(tempDiv);
+    });
+}*/
+
+function toggleButtonState(button) {
+    var buttons = document.querySelectorAll('.btn-group-toggle .btn');
+    buttons.forEach(function(btn) {
+        console.log(btn.id);
+        btn.classList.remove('active');
+    });
+
+    var inputs = document.querySelectorAll('.btn-group-toggle input[type="radio"]');
+    inputs.forEach(function(input) {
+        input.removeAttribute('checked');
+    });
+
+    button.parentNode.classList.add('active');
+    button.checked = true;
+}
+
+function addMapLayer() {
+    console.log("Add map!");
+    mapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    console.log("Add map!");
+    btn = document.getElementById('addMap-button');
+    toggleButtonState(btn);
+}
+function removeBackgroundMap() {
+    console.log("Remove background map!");
+    map.removeLayer(mapLayer);
+    btn = document.getElementById('removeMap-button');
+    toggleButtonState(btn);
+}
+
+const removeMapButton = document.getElementById('removeMap-button');
+removeMapButton.addEventListener('click', removeBackgroundMap);
+
+const addMapButton = document.getElementById('addMap-button');
+addMapButton.addEventListener('click', addMapLayer);
+
+//toggleButtonState(addMapButton);
+
+const dropdownButton = document.getElementById('dropdownMenuButton');
+const dropdownItems = document.querySelectorAll('.dropdown-item');
+
+dropdownItems.forEach(function(item) {
+    item.addEventListener('click', async function() {
+        const selectedText = item.textContent;
+        dropdownButton.textContent = selectedText;
+        selectedCity = item.dataset.value;
+        console.log(selectedCity);
+        loadMap();
+    });
+});
+
