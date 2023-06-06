@@ -1,5 +1,10 @@
 package at.tuwien.vis2.metromaps.model.grid;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class GridVertex {
 
     private String name;
@@ -8,12 +13,15 @@ public class GridVertex {
     private double[] coordinates;
     private String stationName;
     private boolean isTaken = false;
+    private Map<String, Boolean> takenLines;
+
 
     public GridVertex(String name, int indexX, int indexY, double[] coordinates) {
         this.name = name;
         this.indexX = indexX;
         this.indexY = indexY;
         this.coordinates = coordinates;
+        this.takenLines = new HashMap<>();
     }
 
     public String getName() {
@@ -70,6 +78,18 @@ public class GridVertex {
         this.coordinates = coordinates;
     }
 
+
+    public Map<String, Boolean> getTakenLines() {
+        return takenLines;
+    }
+
+    public void setTakenLineNames(List<String> lineNames, String lineName) {
+        for (String line : lineNames) {
+            this.takenLines.putIfAbsent(line, false);
+        }
+        this.takenLines.put(lineName, true);
+    }
+
     @Override
     public int hashCode() {
         return this.name.hashCode();
@@ -86,5 +106,13 @@ public class GridVertex {
     @Override
     public String toString() {
         return super.toString();
+    }
+
+    public boolean isClosedForLine(String lineName) {
+        Boolean taken = takenLines.get(lineName);
+        if (taken == null) {
+            return true;
+        }
+        return taken;
     }
 }

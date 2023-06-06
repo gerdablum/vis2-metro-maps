@@ -2,8 +2,10 @@ package at.tuwien.vis2.metromaps.model;
 
 import at.tuwien.vis2.metromaps.model.grid.GridEdge;
 import at.tuwien.vis2.metromaps.model.grid.GridGraph;
+import at.tuwien.vis2.metromaps.model.grid.GridVertex;
 import at.tuwien.vis2.metromaps.model.input.InputGraph;
 import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
+import org.jgrapht.GraphPath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,12 +43,18 @@ public class OctalinearGraphCalculator {
         //List<InputLineEdge> edgesSorted = inputGraph.sortEdges();
 
         List<List<GridEdge>> allPaths = new ArrayList<>();
+        List<List<GridVertex>> allVertices = new ArrayList<>();
         for (String lineName: allLineNames) {
             gridGraph.reopenSinkEdgesFor(lineName, allPaths);
+            gridGraph.closeSinkEdgesAroundVertices(lineName, allVertices);
             List<InputLineEdge> edgesSorted = metroDataProvider.getOrderedEdgesForLine(lineName, city);
             for (InputLineEdge edge : edgesSorted) {
-                List<GridEdge> path = gridGraph.processInputEdge(edge, edge.getStartStation(), edge.getEndStation(), lineName);
-                allPaths.add(path);
+                GraphPath<GridVertex, GridEdge> path = gridGraph.processInputEdge(edge, edge.getStartStation(), edge.getEndStation(), lineName);
+                if (path == null) {
+                    continue;
+                }
+                allPaths.add(path.getEdgeList());
+                allVertices.add(path.getVertexList());
             }
 
         }

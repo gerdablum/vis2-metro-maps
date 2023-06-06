@@ -11,14 +11,15 @@ import org.jgrapht.traverse.DepthFirstIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class GridGraph {
 
     private final Graph<GridVertex, GridEdge> gridGraph;
-    private double d = 0.4; // threshold (in km) we would like to have between each station
-    private double r = 2; // distance between source and target candidates to match input edges onto grid
+    private double d = 0.3; // threshold (in km) we would like to have between each grid
+    private double r = 1.5; // distance between source and target candidates to match input edges onto grid
     private double costM = 0.5;  // move penalty
     private double costH = 1; // hop cost of using a grid edge
     private int numberOfVerticesHorizontal;
@@ -97,59 +98,47 @@ public class GridGraph {
         numberOfVerticesVertical = (int) Math.ceil(heightInputGraph / d);
     }
 
-    public List<GridEdge> processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph, String lineName) {
-        if (sourceFromInputGraph.getName().equals("Landstraße") || targetFromInputGraph.getName().equals("Landstraße")) {
+    public GraphPath<GridVertex, GridEdge> processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph, String lineName) {
+        if (sourceFromInputGraph.getName().equals("0x13434420") || targetFromInputGraph.getName().equals("Großfeldsiedlung")) {
             int a = 1;
         }
-        double[] sourcePosition = sourceFromInputGraph.getCoordinates();
-        double[] targetPosition = targetFromInputGraph.getCoordinates();
+
         logger.info("Routing a path from " + sourceFromInputGraph.getName() + " to " + targetFromInputGraph.getName());
         Set<GridVertex> sourceCandidates = new HashSet<>();
         Set<GridVertex> targetCandidates = new HashSet<>();
         boolean sourceIsFixed = false;
         boolean targetIsFixed = false;
-        for (GridVertex vertex : gridGraph.vertexSet()) {// sink and source candidates according to set distance r
-            double distanceSource = Utils.getDistanceInKmTo(sourcePosition, vertex.getCoordinates());
-            double distanceTarget = Utils.getDistanceInKmTo(targetPosition, vertex.getCoordinates());
-            if (vertex.getStationName() != null && vertex.getStationName().equals(sourceFromInputGraph.getName())) {
-                sourceCandidates.add(vertex);
-                sourceIsFixed = true;
-            } else if (vertex.getStationName() != null && vertex.getStationName().equals(targetFromInputGraph.getName())) {
-                targetCandidates.add(vertex);
-                targetIsFixed = true;
-            } else {
-                // build voroni diagram to deal with overlapping sink and target candidates
-                if (distanceSource < r || distanceTarget < r) {
-                    if (distanceSource < distanceTarget) {
-                        sourceCandidates.add(vertex);
-                        // set penalty for source
-                        Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
-                        double offsetcosts = calculateDistancePenalty(sourceFromInputGraph.getCoordinates(), vertex.getCoordinates());
-                        //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceSource + " gets penalty " + penalty);
-                        if (sourceIsFixed) {
-                            offsetcosts = 1;
-                        }
-                        UpdateGridGraphCost(edgesCandidates, offsetcosts);
-
-                    } else {
-                        targetCandidates.add(vertex);
-                        // set penalty for targets
-                        Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
-                        double offsetcosts = calculateDistancePenalty(targetFromInputGraph.getCoordinates(), vertex.getCoordinates());
-                        //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceTarget + " gets penalty " + penalty);
-                        if (targetIsFixed) {
-                            offsetcosts = 1;
-                        }
-                        UpdateGridGraphCost(edgesCandidates, offsetcosts);
-                    }
-                }
-
-            }
+        Set<GridVertex> allGridVertices = new HashSet<>(gridGraph.vertexSet());
+        GridVertex takenSource = findAlreadyRoutedGridVertex(allGridVertices, sourceFromInputGraph.getName());
+        GridVertex takenTarget = findAlreadyRoutedGridVertex(allGridVertices, targetFromInputGraph.getName());
+        if (takenSource != null) {
+            sourceCandidates.add(takenSource);
+            UpdateGridGraphCost(gridGraph.outgoingEdgesOf(takenSource), 1);
+            allGridVertices.remove(takenSource);
+            sourceIsFixed = true;
         }
+        if (takenTarget != null) {
+            targetCandidates.add(takenTarget);
+            allGridVertices.remove(takenTarget);
+            UpdateGridGraphCost(gridGraph.outgoingEdgesOf(takenTarget), 1);
+            targetIsFixed = true;
+        }
+
+
+        searchCandidatesAndCalculateOffsetcosts(allGridVertices, sourceFromInputGraph, targetFromInputGraph, sourceCandidates, targetCandidates);
+        if (sourceIsFixed) {
+            // our source is already routed in the path. So we reset the offset costs from all other source candidates
+            // (offset cost must not influence routing in this case!)
+            sourceCandidates.forEach(v -> UpdateGridGraphCost(gridGraph.outgoingEdgesOf(v), 1));
+        } else if (targetIsFixed) {
+            targetCandidates.forEach(v -> UpdateGridGraphCost(gridGraph.outgoingEdgesOf(v), 1));
+        }
+
+
         GraphPath<GridVertex, GridEdge> shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates, sourceFromInputGraph.getName()),
                 filterForAlreadyUsedVertices(targetCandidates, targetFromInputGraph.getName()));
        if (shortestPath == null) {
-           return new ArrayList<>();
+           return null;
        }
         // set already used edges to inf and mark grid edge as taken
         shortestPath.getEdgeList().forEach(gridEdge -> {
@@ -157,15 +146,16 @@ public class GridGraph {
             gridEdge.setCostsInf();
             gridGraph.setEdgeWeight(gridEdge, gridEdge.getCosts());
         });
-//        List<GridVertex> vertexList = shortestPath.getVertexList();
-//        for (int i = 1; i < vertexList.size(); i++) {
-//            GridVertex vertex = vertexList.get(i);
-//            GridVertex previous = vertexList.get(i - 1);
-//            vertex.setTaken();
-//            previous.setTaken();
-//            GridEdge incomingEdge = gridGraph.getEdge(previous, vertex);
-//            updateBendCosts(gridGraph.outgoingEdgesOf(vertex), incomingEdge);
-//        }
+        // update available & taken lines for the vertices
+        List<GridVertex> vertexList = shortestPath.getVertexList();
+        vertexList.remove(shortestPath.getEndVertex());
+        for (GridVertex vertex : vertexList) {
+            vertex.setTakenLineNames(sourceFromInputGraph.getLineNames(), lineName);
+            gridGraph.outgoingEdgesOf(vertex).forEach(v -> v.setCostsInf());
+        }
+        shortestPath.getEndVertex().setTakenLineNames(targetFromInputGraph.getLineNames(), lineName);
+
+
         GridEdge lastEdgeInPath = shortestPath.getEdgeList().get(shortestPath.getEdgeList().size() -1);
         updateBendCosts(gridGraph.outgoingEdgesOf(shortestPath.getEndVertex()), lastEdgeInPath);
 
@@ -175,7 +165,45 @@ public class GridGraph {
         shortestPath.getEndVertex().setTakenWith(targetFromInputGraph.getName());
 
         // TODO all bend edges (edges in between ingoing and outgoing path of a vertex - smaller angle) have cost inf
-        return shortestPath.getEdgeList();
+
+        return shortestPath;
+    }
+
+    private GridVertex findAlreadyRoutedGridVertex(Set<GridVertex> gridVertices, String name) {
+        Optional<GridVertex> first = gridVertices.stream()
+                .filter(v -> v.isTaken() && v.getStationName().equals(name)).findFirst();
+        return first.orElse(null);
+    }
+
+    private void searchCandidatesAndCalculateOffsetcosts(Set<GridVertex> allGridVertices, InputStation sourceFromInputGraph, InputStation targetFromInputGraph, Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates) {
+        double[] sourcePosition = sourceFromInputGraph.getCoordinates();
+        double[] targetPosition = targetFromInputGraph.getCoordinates();
+        for (GridVertex vertex : allGridVertices) {// sink and source candidates according to set distance r
+            double distanceSource = Utils.getDistanceInKmTo(sourcePosition, vertex.getCoordinates());
+            double distanceTarget = Utils.getDistanceInKmTo(targetPosition, vertex.getCoordinates());
+                // build voroni diagram to deal with overlapping sink and target candidates
+            if (vertex.getName().equals("35,4")) {
+                int a = 1;
+            }
+            if (distanceSource < r || distanceTarget < r) {
+                if (distanceSource < distanceTarget) {
+                    sourceCandidates.add(vertex);
+                    // set penalty for source
+                    Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
+                    double offsetcosts = calculateDistancePenalty(sourceFromInputGraph.getCoordinates(), vertex.getCoordinates());
+                    //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceSource + " gets penalty " + penalty);
+                    UpdateGridGraphCost(edgesCandidates, offsetcosts);
+
+                } else {
+                    targetCandidates.add(vertex);
+                    // set penalty for targets
+                    Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
+                    double offsetcosts = calculateDistancePenalty(targetFromInputGraph.getCoordinates(), vertex.getCoordinates());
+                    //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceTarget + " gets penalty " + penalty);
+                    UpdateGridGraphCost(edgesCandidates, offsetcosts);
+                }
+            }
+        }
     }
 
     private void UpdateGridGraphCost(Set<GridEdge> edgesCandidates, double penalty) {
@@ -243,6 +271,7 @@ public class GridGraph {
     }
 
     private Set<GridVertex> filterForAlreadyUsedVertices(Set<GridVertex> sourceCandidates, String sourceStationName) {
+        // this is somehow very important and we dont know why...
         Set<GridVertex> taken = sourceCandidates.stream().filter(GridVertex::isTaken).collect(Collectors.toSet());
         if (taken.isEmpty()) {
             return sourceCandidates;
@@ -263,10 +292,9 @@ public class GridGraph {
         for (GridVertex source: sourceCandidates) {
             for(GridVertex target: targetCandidates) {
                 GraphPath<GridVertex, GridEdge> path = DijkstraShortestPath.findPathBetween(gridGraph, source, target);
-                Optional<GridVertex> first = gridGraph.vertexSet().stream().filter(v -> v.getName().equals("22,19")).findFirst();
-                Optional<GridVertex> next = gridGraph.vertexSet().stream().filter(v -> v.getName().equals("23,19")).findFirst();
-                GridEdge edge = gridGraph.getEdge(first.get(), next.get());
-                logger.info(String.format("cost of this verty specific edge between %s and %s is %s", first.get().getName(), next.get().getName(), edge.getCosts()));
+                if (path == null) {
+                    continue;
+                }
                 double length = getTotalWeight(path.getEdgeList());
                 if (length < shortestDistance) {
                     shortestPath = path;
@@ -325,6 +353,8 @@ public class GridGraph {
    }
 
     public void reopenSinkEdgesFor(String lineName, List<List<GridEdge>> allPaths) {
+
+        // this is to allow double routing if two lines share the same edge
         List<GridEdge> paths = allPaths.stream().flatMap(Collection::stream).toList();
         for (GridEdge edge: paths) {
             if (edge.isClosedForLine(lineName)) {
@@ -333,5 +363,20 @@ public class GridGraph {
                 edge.resetCosts();
             }
         }
+    }
+
+    public void closeSinkEdgesAroundVertices(String lineName, List<List<GridVertex>> allVertices) {
+        List<GridVertex> vertices = allVertices.stream().flatMap(Collection::stream).toList();
+        vertices.forEach(vertex -> {
+            if (vertex.getStationName() != null && vertex.getStationName().equals("Westbahnhof")) {
+                int a = 0;
+            }
+            Set<GridEdge> adjacentEdges = gridGraph.outgoingEdgesOf(vertex);
+            if(vertex.isClosedForLine(lineName) || vertex.getStationName() == null) {
+                adjacentEdges.forEach(e -> e.setCostsInf());
+            } else {
+                adjacentEdges.forEach(e -> e.resetCosts());
+            }
+        });
     }
 }

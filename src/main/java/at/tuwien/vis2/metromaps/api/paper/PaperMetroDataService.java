@@ -61,9 +61,11 @@ public class PaperMetroDataService implements MetroDataProvider {
 
                 wrapper.allInputLineEdges = new HashMap<>();
                 for (PaperFeatures.Feature line : wrapper.allLines) {
+                    List<String> lineNames = line.getProperties().getLines().stream().map(l -> l.getLabel()).collect(Collectors.toList());
                     String from = line.getProperties().getFrom();
                     String to = line.getProperties().getTo();
-                    List<String> lineNames = line.getProperties().getLines().stream().map(l -> l.getLabel()).toList();
+                    wrapper.allInputStations.get(from).addLineNames(lineNames);
+                    wrapper.allInputStations.get(to).addLineNames(lineNames);
                     InputStation startStation = wrapper.allInputStations.get(from);
                     InputStation endStations = wrapper.allInputStations.get(to);
                     InputLineEdge lineEdge = new InputLineEdge(line.getProperties().getId(), startStation, endStations,
@@ -126,7 +128,7 @@ public class PaperMetroDataService implements MetroDataProvider {
         LinkedList<InputLineEdge> orderedEdges = new LinkedList<>();
         while (!allGeograficEdgesForLine.isEmpty()) {
             LinkedList<InputLineEdge> semiOrderedEdges = new LinkedList<>();
-            orderEdges(allGeograficEdgesForLine, semiOrderedEdges);
+            orderEdges(allGeograficEdgesForLine, semiOrderedEdges, lineId);
             orderedEdges.addAll(semiOrderedEdges);
 
         }
@@ -134,7 +136,7 @@ public class PaperMetroDataService implements MetroDataProvider {
         return orderedEdges;
     }
 
-    private void orderEdges(List<InputLineEdge> allGeograficEdgesForLine, LinkedList<InputLineEdge> orderedEdges) {
+    private void orderEdges(List<InputLineEdge> allGeograficEdgesForLine, LinkedList<InputLineEdge> orderedEdges, String lineId) {
         InputLineEdge current = allGeograficEdgesForLine.get(0);
         while (current != null) {
             orderedEdges.addLast(current);
