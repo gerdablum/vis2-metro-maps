@@ -98,7 +98,7 @@ public class GridGraph {
     }
 
     public List<GridEdge> processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph, String lineName) {
-        if (sourceFromInputGraph.getName().equals("H�tteldorfer Stra�e") || targetFromInputGraph.getName().equals("H�tteldorfer Stra�e")) {
+        if (sourceFromInputGraph.getName().equals("Landstraße") || targetFromInputGraph.getName().equals("Landstraße")) {
             int a = 1;
         }
         double[] sourcePosition = sourceFromInputGraph.getCoordinates();
@@ -106,13 +106,17 @@ public class GridGraph {
         logger.info("Routing a path from " + sourceFromInputGraph.getName() + " to " + targetFromInputGraph.getName());
         Set<GridVertex> sourceCandidates = new HashSet<>();
         Set<GridVertex> targetCandidates = new HashSet<>();
-
-        gridGraph.vertexSet().forEach( vertex -> {
-            // sink and source candidates according to set distance r
+        boolean sourceIsFixed = false;
+        boolean targetIsFixed = false;
+        for (GridVertex vertex : gridGraph.vertexSet()) {// sink and source candidates according to set distance r
             double distanceSource = Utils.getDistanceInKmTo(sourcePosition, vertex.getCoordinates());
             double distanceTarget = Utils.getDistanceInKmTo(targetPosition, vertex.getCoordinates());
             if (vertex.getStationName() != null && vertex.getStationName().equals(sourceFromInputGraph.getName())) {
                 sourceCandidates.add(vertex);
+                sourceIsFixed = true;
+            } else if (vertex.getStationName() != null && vertex.getStationName().equals(targetFromInputGraph.getName())) {
+                targetCandidates.add(vertex);
+                targetIsFixed = true;
             } else {
                 // build voroni diagram to deal with overlapping sink and target candidates
                 if (distanceSource < r || distanceTarget < r) {
@@ -122,6 +126,9 @@ public class GridGraph {
                         Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
                         double offsetcosts = calculateDistancePenalty(sourceFromInputGraph.getCoordinates(), vertex.getCoordinates());
                         //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceSource + " gets penalty " + penalty);
+                        if (sourceIsFixed) {
+                            offsetcosts = 1;
+                        }
                         UpdateGridGraphCost(edgesCandidates, offsetcosts);
 
                     } else {
@@ -130,12 +137,15 @@ public class GridGraph {
                         Set<GridEdge> edgesCandidates = gridGraph.incomingEdgesOf(vertex);
                         double offsetcosts = calculateDistancePenalty(targetFromInputGraph.getCoordinates(), vertex.getCoordinates());
                         //logger.info("grid vertex " + vertex.getName() + " with distance " + distanceTarget + " gets penalty " + penalty);
-                        edgesCandidates.forEach(edge ->edge.updateCosts(offsetcosts));
+                        if (targetIsFixed) {
+                            offsetcosts = 1;
+                        }
+                        UpdateGridGraphCost(edgesCandidates, offsetcosts);
                     }
                 }
 
             }
-        });
+        }
         GraphPath<GridVertex, GridEdge> shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates, sourceFromInputGraph.getName()),
                 filterForAlreadyUsedVertices(targetCandidates, targetFromInputGraph.getName()));
        if (shortestPath == null) {
@@ -147,16 +157,17 @@ public class GridGraph {
             gridEdge.setCostsInf();
             gridGraph.setEdgeWeight(gridEdge, gridEdge.getCosts());
         });
-        List<GridVertex> vertexList = shortestPath.getVertexList();
-        for (int i = 1; i < vertexList.size(); i++) {
-            GridVertex vertex = vertexList.get(i);
-            GridVertex previous = vertexList.get(i - 1);
-            vertex.setTaken();
-            previous.setTaken();
-            GridEdge incomingEdge = gridGraph.getEdge(previous, vertex);
-            updateBendCosts(gridGraph.outgoingEdgesOf(vertex), incomingEdge);
-        }
-
+//        List<GridVertex> vertexList = shortestPath.getVertexList();
+//        for (int i = 1; i < vertexList.size(); i++) {
+//            GridVertex vertex = vertexList.get(i);
+//            GridVertex previous = vertexList.get(i - 1);
+//            vertex.setTaken();
+//            previous.setTaken();
+//            GridEdge incomingEdge = gridGraph.getEdge(previous, vertex);
+//            updateBendCosts(gridGraph.outgoingEdgesOf(vertex), incomingEdge);
+//        }
+        GridEdge lastEdgeInPath = shortestPath.getEdgeList().get(shortestPath.getEdgeList().size() -1);
+        updateBendCosts(gridGraph.outgoingEdgesOf(shortestPath.getEndVertex()), lastEdgeInPath);
 
         logger.info("routed a path from " + shortestPath.getStartVertex().getName() + " to " +
                 shortestPath.getEndVertex().getName() + " with " + shortestPath.getEdgeList().size() + " steps");
@@ -252,6 +263,10 @@ public class GridGraph {
         for (GridVertex source: sourceCandidates) {
             for(GridVertex target: targetCandidates) {
                 GraphPath<GridVertex, GridEdge> path = DijkstraShortestPath.findPathBetween(gridGraph, source, target);
+                Optional<GridVertex> first = gridGraph.vertexSet().stream().filter(v -> v.getName().equals("22,19")).findFirst();
+                Optional<GridVertex> next = gridGraph.vertexSet().stream().filter(v -> v.getName().equals("23,19")).findFirst();
+                GridEdge edge = gridGraph.getEdge(first.get(), next.get());
+                logger.info(String.format("cost of this verty specific edge between %s and %s is %s", first.get().getName(), next.get().getName(), edge.getCosts()));
                 double length = getTotalWeight(path.getEdgeList());
                 if (length < shortestDistance) {
                     shortestPath = path;
