@@ -1,6 +1,8 @@
 package at.tuwien.vis2.metromaps.model.grid;
 
 import org.jgrapht.Graph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -14,12 +16,18 @@ public class OurDijkstra {
         unsettledVertices = new HashSet<>();
     }
 
+    Logger logger = LoggerFactory.getLogger(OurDijkstra.class);
+
     public ShortestPath findShortestPathBetween(Graph<GridVertex, GridEdge> gridGraph, GridVertex source, GridVertex target, GridEdge comingFromEdge) {
         setAllDistancesToInfExceptSource(gridGraph, source);
         unsettledVertices.add(source);
         GridEdge previousEdge = comingFromEdge;
         while (unsettledVertices.size() != 0) {
             GridVertex current = getLowestDistanceVertex(unsettledVertices);
+            if (current == null) {
+                logger.warn(String.format("cannot find any way from %s", previousEdge.toString()));
+                break;
+            }
             if (current.equals(target)) {
                 break;
             }
