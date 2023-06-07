@@ -17,14 +17,15 @@ import java.util.stream.Collectors;
 public class GridGraph {
 
     private final Graph<GridVertex, GridEdge> gridGraph;
-    private double d = 0.3; // threshold (in km) we would like to have between each grid cell
-    private double r = 1.5; // distance between source and target candidates to match input edges onto grid
+    private double d = 0.5; // threshold (in km) we would like to have between each grid cell
+    private double r = 1; // distance between source and target candidates to match input edges onto grid
     private double costM = 0.5;  // move penalty
     private double costH = 1; // hop cost of using a grid edge
     private int numberOfVerticesHorizontal;
     private int numberOfVerticesVertical;
 
     Logger logger = LoggerFactory.getLogger(GridGraph.class);
+    private GridEdge previouslyUsedEdge;
 
     public GridGraph(double widthInputGraph, double heightInputGraph, double[] leftUpper, double[] leftLower, double[] rightUpper) {
 
@@ -97,8 +98,8 @@ public class GridGraph {
         numberOfVerticesVertical = (int) Math.ceil(heightInputGraph / d);
     }
 
-    public GraphPath<GridVertex, GridEdge> processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph, String lineName) {
-        if (sourceFromInputGraph.getName().equals("0x13434420") || targetFromInputGraph.getName().equals("Großfeldsiedlung")) {
+    public ShortestPath processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph, String lineName) {
+        if (sourceFromInputGraph.getName().equals("Donauspital") || targetFromInputGraph.getName().equals("Hardeggasse")) {
             int a = 1;
         }
 
@@ -134,8 +135,8 @@ public class GridGraph {
         }
 
 
-        GraphPath<GridVertex, GridEdge> shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates, sourceFromInputGraph.getName()),
-                filterForAlreadyUsedVertices(targetCandidates, targetFromInputGraph.getName()));
+        ShortestPath shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates, sourceFromInputGraph.getName()),
+                filterForAlreadyUsedVertices(targetCandidates, targetFromInputGraph.getName()), previouslyUsedEdge);
        if (shortestPath == null) {
            return null;
        }
@@ -150,13 +151,13 @@ public class GridGraph {
         vertexList.remove(shortestPath.getEndVertex());
         for (GridVertex vertex : vertexList) {
             vertex.setTakenLineNames(sourceFromInputGraph.getLineNames(), lineName);
-            gridGraph.outgoingEdgesOf(vertex).forEach(v -> v.setCostsInf());
         }
+        vertexList.add(shortestPath.getEndVertex());
         shortestPath.getEndVertex().setTakenLineNames(targetFromInputGraph.getLineNames(), lineName);
 
 
-        GridEdge lastEdgeInPath = shortestPath.getEdgeList().get(shortestPath.getEdgeList().size() -1);
-        updateBendCosts(gridGraph.outgoingEdgesOf(shortestPath.getEndVertex()), lastEdgeInPath);
+        previouslyUsedEdge = shortestPath.getEdgeList().get(shortestPath.getEdgeList().size() -1);
+
 
         logger.info("routed a path from " + shortestPath.getStartVertex().getName() + " to " +
                 shortestPath.getEndVertex().getName() + " with " + shortestPath.getEdgeList().size() + " steps");
@@ -290,15 +291,16 @@ public class GridGraph {
 
     }
 
-    private GraphPath<GridVertex, GridEdge> getShortestPathBetweenTwoSets(Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates) {
+    private ShortestPath getShortestPathBetweenTwoSets(Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates, GridEdge previousEdge) {
         double shortestDistance = Double.MAX_VALUE;
         GridVertex finalSource = null;
         GridVertex finalTarget = null;
-        GraphPath<GridVertex, GridEdge> shortestPath = null;
+        ShortestPath shortestPath = null;
         for (GridVertex source: sourceCandidates) {
             for(GridVertex target: targetCandidates) {
-                GraphPath<GridVertex, GridEdge> path = DijkstraShortestPath.findPathBetween(gridGraph, source, target);
-                if (path == null) {
+                OurDijkstra dijkstra = new OurDijkstra();
+                ShortestPath path = dijkstra.findShortestPathBetween(gridGraph, source, target, previousEdge);
+                if (path.getEdgeList().isEmpty()) {
                     continue;
                 }
                 double length = getTotalWeight(path.getEdgeList());

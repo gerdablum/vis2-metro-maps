@@ -1,9 +1,6 @@
 package at.tuwien.vis2.metromaps.model.grid;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GridVertex {
 
@@ -14,6 +11,11 @@ public class GridVertex {
     private String stationName;
     private boolean isTaken = false;
     private Map<String, Boolean> takenLines;
+
+    //used for dijkstra algortihm, represents the distance to current starting vertex
+    private double distance;
+
+    private LinkedList<GridVertex> shortestPath;
 
 
     public GridVertex(String name, int indexX, int indexY, double[] coordinates) {
@@ -90,6 +92,14 @@ public class GridVertex {
         this.takenLines.put(lineName, true);
     }
 
+    double getDistance() {
+        return distance;
+    }
+
+    void setDistance(double distance) {
+        this.distance = distance;
+    }
+
     @Override
     public int hashCode() {
         return this.name.hashCode();
@@ -114,5 +124,16 @@ public class GridVertex {
             return true;
         }
         return taken;
+    }
+
+    LinkedList<GridVertex> getShortestPath() {
+        if (shortestPath == null) {
+            return new LinkedList<>();
+        }
+        return shortestPath;
+    }
+
+    void setShortestPath(LinkedList<GridVertex> shortestPath) {
+        this.shortestPath = shortestPath;
     }
 }

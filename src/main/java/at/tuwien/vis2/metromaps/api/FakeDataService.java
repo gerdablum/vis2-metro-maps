@@ -4,6 +4,7 @@ import at.tuwien.vis2.metromaps.model.MetroDataProvider;
 import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
 import at.tuwien.vis2.metromaps.model.input.InputStation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -25,8 +26,8 @@ public class FakeDataService implements MetroDataProvider {
         InputLineEdge edge3 = new InputLineEdge("3", leopoldau, grossfelds, new double[1][0], Collections.singletonList("3"));
         InputLineEdge edge4 = new InputLineEdge("4", grossfelds, aderklaaer, new double[1][0], Collections.singletonList("3"));
 
-        this.stations = Arrays.asList(ottakring, kendlerstrasse, huettldorferstr, leopoldau, aderklaaer, grossfelds);
-        this.edges = Arrays.asList(edge1, edge2, edge3, edge4);
+        this.stations = Arrays.asList(ottakring, kendlerstrasse, huettldorferstr);
+        this.edges = Arrays.asList(edge1, edge2);
     }
 
     @Override
@@ -52,6 +53,6 @@ public class FakeDataService implements MetroDataProvider {
 
     @Override
     public List<String> getAllLineNames(String city) {
-        return null;
+        return Arrays.asList("1");
     }
 }
