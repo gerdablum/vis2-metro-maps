@@ -216,19 +216,26 @@ public class GridGraph {
             int neighbourDirectionX = neighbourOutgoingX - neighbourCenterX;
             int neighbourDirectionY = neighbourOutgoingY - neighbourCenterY;
 
-            if(neighbourCenterX == 21 && neighbourCenterY == 20) {
+            if(neighbourCenterX == 14 && neighbourCenterY == 23) {
                 int a = 1;
                 if(neighbourCenterX == 21 && neighbourCenterY == 20) {
                 }
             }
 
-            // TODO: missing Karlsplatz? andere Daten einspielen
-
             double angle1 = Math.atan2(-incomingEdgeDirectionY, incomingEdgeDirectionX);
             double angle2 = Math.atan2(-neighbourDirectionY, neighbourDirectionX);
-            double angle = Math.abs(Math.toDegrees(angle2 - angle1) % 180);
+            double angle = Math.toDegrees(angle2 - angle1);
             //logger.info("Edge from vertex " + e.getSource().getName() + " to " +  e.getDestination().getName());
             //logger.info("Setting edge bend cost from " + e.getBendCost() + "  to " + edgeCost);
+            if (angle < 0) {
+                angle += 360;
+            } else if (angle > 360) {
+                angle -= 360;
+            }
+            if (angle > 180) {
+                angle = 360 - angle;
+            }
+
             if (angle == 45) {
                 e.updateCosts(GridEdge.BendCost.C_45);
             } else if (angle == 90) {
@@ -263,10 +270,6 @@ public class GridGraph {
         for (GridVertex source: sourceCandidates) {
             for(GridVertex target: targetCandidates) {
                 GraphPath<GridVertex, GridEdge> path = DijkstraShortestPath.findPathBetween(gridGraph, source, target);
-                Optional<GridVertex> first = gridGraph.vertexSet().stream().filter(v -> v.getName().equals("22,19")).findFirst();
-                Optional<GridVertex> next = gridGraph.vertexSet().stream().filter(v -> v.getName().equals("23,19")).findFirst();
-                GridEdge edge = gridGraph.getEdge(first.get(), next.get());
-                logger.info(String.format("cost of this verty specific edge between %s and %s is %s", first.get().getName(), next.get().getName(), edge.getCosts()));
                 double length = getTotalWeight(path.getEdgeList());
                 if (length < shortestDistance) {
                     shortestPath = path;
