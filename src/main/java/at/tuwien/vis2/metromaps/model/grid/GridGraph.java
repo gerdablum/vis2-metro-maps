@@ -11,14 +11,13 @@ import org.jgrapht.traverse.DepthFirstIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class GridGraph {
 
     private final Graph<GridVertex, GridEdge> gridGraph;
-    private double d = 0.3; // threshold (in km) we would like to have between each grid
+    private double d = 0.3; // threshold (in km) we would like to have between each grid cell
     private double r = 1.5; // distance between source and target candidates to match input edges onto grid
     private double costM = 0.5;  // move penalty
     private double costH = 1; // hop cost of using a grid edge
@@ -250,13 +249,20 @@ public class GridGraph {
                 }
             }
 
-            // TODO: missing Karlsplatz? andere Daten einspielen
-
             double angle1 = Math.atan2(-incomingEdgeDirectionY, incomingEdgeDirectionX);
             double angle2 = Math.atan2(-neighbourDirectionY, neighbourDirectionX);
-            double angle = Math.abs(Math.toDegrees(angle2 - angle1) % 180);
+            double angle = Math.toDegrees(angle2 - angle1);
             //logger.info("Edge from vertex " + e.getSource().getName() + " to " +  e.getDestination().getName());
             //logger.info("Setting edge bend cost from " + e.getBendCost() + "  to " + edgeCost);
+            if (angle < 0) {
+                angle += 360;
+            } else if (angle > 360) {
+                angle -= 360;
+            }
+            if (angle > 180) {
+                angle = 360 - angle;
+            }
+
             if (angle == 45) {
                 e.updateCosts(GridEdge.BendCost.C_45);
             } else if (angle == 90) {
