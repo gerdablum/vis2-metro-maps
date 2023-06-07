@@ -18,7 +18,7 @@ public class GridGraph {
 
     private final Graph<GridVertex, GridEdge> gridGraph;
     private double d = 0.5; // threshold (in km) we would like to have between each grid cell
-    private double r = 2; // distance between source and target candidates to match input edges onto grid
+    private double r = 1.4; // distance between source and target candidates to match input edges onto grid
     private double costM = 0.5;  // move penalty
     private double costH = 1; // hop cost of using a grid edge
     private int numberOfVerticesHorizontal;
@@ -124,15 +124,20 @@ public class GridGraph {
             targetIsFixed = true;
         }
 
+        // before calculating new offset costs, reset the old ones
+        // if target candidate is fixed, only calculate offset costs for the target candidates
+        // if both target and source are fixed, do not calculate any offset costs
+        // if neither target nor source are fixed, calculate offset costs both.
 
         searchCandidatesAndCalculateOffsetcosts(allGridVertices, sourceFromInputGraph, targetFromInputGraph, sourceCandidates, targetCandidates);
-        if (sourceIsFixed) {
-            // our source is already routed in the path. So we reset the offset costs from all other source candidates
-            // (offset cost must not influence routing in this case!)
-            sourceCandidates.forEach(v -> UpdateGridGraphCost(gridGraph.outgoingEdgesOf(v), 1));
-        } else if (targetIsFixed) {
-            targetCandidates.forEach(v -> UpdateGridGraphCost(gridGraph.outgoingEdgesOf(v), 1));
-        }
+//        if (sourceIsFixed) {
+//            // our source is already routed in the path. So we reset the offset costs from all other source candidates
+//            // (offset cost must not influence routing in this case!)
+//            sourceCandidates.forEach(v -> UpdateGridGraphCost(gridGraph.outgoingEdgesOf(v), 1));
+//        } else if (targetIsFixed) {
+//            targetCandidates.forEach(v -> UpdateGridGraphCost(gridGraph.outgoingEdgesOf(v), 1));
+//        }
+
 
 
         ShortestPath shortestPath = getShortestPathBetweenTwoSets(filterForAlreadyUsedVertices(sourceCandidates, sourceFromInputGraph.getName()),
@@ -151,6 +156,8 @@ public class GridGraph {
         vertexList.remove(shortestPath.getEndVertex());
         for (GridVertex vertex : vertexList) {
             vertex.setTakenLineNames(sourceFromInputGraph.getLineNames(), lineName);
+            // do not allow loops
+            gridGraph.outgoingEdgesOf(vertex).forEach(v -> v.setCostsInf());
         }
         vertexList.add(shortestPath.getEndVertex());
         shortestPath.getEndVertex().setTakenLineNames(targetFromInputGraph.getLineNames(), lineName);
@@ -210,70 +217,6 @@ public class GridGraph {
         edgesCandidates.forEach(edge -> {
             edge.updateCosts(penalty);
             gridGraph.setEdgeWeight(edge, edge.getCosts());
-        });
-    }
-
-    public void updateBendCosts(Set<GridEdge> outgoingEdges, GridEdge incomingEdge) {
-        incomingEdge.setCostsInf();
-        int centerVertexX = incomingEdge.getDestination().getIndexX();
-        int centerVertexY = incomingEdge.getDestination().getIndexY();
-
-        int incomingVertexX = incomingEdge.getSource().getIndexX();
-        int incomingVertexY = incomingEdge.getSource().getIndexY();
-
-        int incomingEdgeDirectionX = incomingVertexX - centerVertexX;
-        int incomingEdgeDirectionY = incomingVertexY - centerVertexY;
-
-        outgoingEdges.forEach(e -> {
-            int neighbourCenterX = e.getSource().getIndexX();
-            int neighbourCenterY = e.getSource().getIndexY();
-
-            int neighbourOutgoingX = e.getDestination().getIndexX();
-            int neighbourOutgoingY = e.getDestination().getIndexY();
-
-            // directions must match!!!
-            if (centerVertexX == neighbourOutgoingX && centerVertexY == neighbourOutgoingY) {
-                int tempx = neighbourCenterX;
-                int tempy = neighbourCenterY;
-                neighbourCenterX = neighbourOutgoingX;
-                neighbourCenterY = neighbourOutgoingY;
-                neighbourOutgoingX = tempx;
-                neighbourOutgoingY = tempy;
-            }
-
-            int neighbourDirectionX = neighbourOutgoingX - neighbourCenterX;
-            int neighbourDirectionY = neighbourOutgoingY - neighbourCenterY;
-
-            if(neighbourCenterX == 21 && neighbourCenterY == 20) {
-                int a = 1;
-                if(neighbourCenterX == 21 && neighbourCenterY == 20) {
-                }
-            }
-
-            double angle1 = Math.atan2(-incomingEdgeDirectionY, incomingEdgeDirectionX);
-            double angle2 = Math.atan2(-neighbourDirectionY, neighbourDirectionX);
-            double angle = Math.toDegrees(angle2 - angle1);
-            //logger.info("Edge from vertex " + e.getSource().getName() + " to " +  e.getDestination().getName());
-            //logger.info("Setting edge bend cost from " + e.getBendCost() + "  to " + edgeCost);
-            if (angle < 0) {
-                angle += 360;
-            } else if (angle > 360) {
-                angle -= 360;
-            }
-            if (angle > 180) {
-                angle = 360 - angle;
-            }
-
-            if (angle == 45) {
-                e.updateCosts(GridEdge.BendCost.C_45);
-            } else if (angle == 90) {
-                e.updateCosts(GridEdge.BendCost.C_90);
-            } else if (angle == 135) {
-                e.updateCosts(GridEdge.BendCost.C_135);
-            } else {
-                e.updateCosts(GridEdge.BendCost.C_180);
-            }
-            gridGraph.setEdgeWeight(e, e.getCosts());
         });
     }
 
@@ -360,17 +303,16 @@ public class GridGraph {
         return gridGraph.edgeSet();
    }
 
-    public void reopenSinkEdgesFor(String lineName, List<List<GridEdge>> allPaths) {
+    public void reopenSinkEdgesFor(String lineName, List<List<GridVertex>> allVertices) {
 
         // this is to allow double routing if two lines share the same edge
-        List<GridEdge> paths = allPaths.stream().flatMap(Collection::stream).toList();
-        for (GridEdge edge: paths) {
-            if (edge.isClosedForLine(lineName)) {
-                edge.setCostsInf();
-            } else {
-                edge.resetCosts();
-            }
-        }
+        List<GridVertex> vertices = allVertices.stream().flatMap(Collection::stream).toList();
+        vertices.forEach(v -> {
+            Set<GridEdge> gridEdges = gridGraph.outgoingEdgesOf(v);
+            gridEdges.forEach( g -> {
+                g.resetCosts();
+            });
+        });
     }
 
     public void closeSinkEdgesAroundVertices(String lineName, List<List<GridVertex>> allVertices) {

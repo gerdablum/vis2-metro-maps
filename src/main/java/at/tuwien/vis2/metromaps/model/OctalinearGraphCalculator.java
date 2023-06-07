@@ -46,7 +46,7 @@ public class OctalinearGraphCalculator {
         List<List<GridEdge>> allPaths = new ArrayList<>();
         List<List<GridVertex>> allVertices = new ArrayList<>();
         for (String lineName: allLineNames) {
-            //gridGraph.reopenSinkEdgesFor(lineName, allPaths);
+            gridGraph.reopenSinkEdgesFor(lineName, allVertices);
             //gridGraph.closeSinkEdgesAroundVertices(lineName, allVertices);
             List<InputLineEdge> edgesSorted = metroDataProvider.getOrderedEdgesForLine(lineName, city);
             for (InputLineEdge edge : edgesSorted) {
