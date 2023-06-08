@@ -25,6 +25,7 @@ public class GridGraph {
     private int numberOfVerticesVertical;
 
     Logger logger = LoggerFactory.getLogger(GridGraph.class);
+    private String currentLineName = "";
     private GridEdge previouslyUsedEdge;
 
     public Set<GridVertex> sourceCandidates = new HashSet<>();
@@ -107,6 +108,9 @@ public class GridGraph {
         if (sourceFromInputGraph.getName().equals("Seestadt") || targetFromInputGraph.getName().equals("Aspern Nord")) {
             int a = 1;
         }
+        if(!currentLineName.equals(lineName)) {
+            previouslyUsedEdge = null;
+        }
         logger.info("Routing a path from " + sourceFromInputGraph.getName() + " to " + targetFromInputGraph.getName());
         // set costs back & clear Candidates
         for (GridVertex sourceCandidate : sourceCandidates ) {
@@ -168,9 +172,8 @@ public class GridGraph {
         vertexList.add(shortestPath.getEndVertex());
         shortestPath.getEndVertex().setTakenLineNames(targetFromInputGraph.getLineNames(), lineName);
 
-
+        currentLineName = lineName;
         previouslyUsedEdge = shortestPath.getEdgeList().get(shortestPath.getEdgeList().size() -1);
-
 
         logger.info("routed a path from " + shortestPath.getStartVertex().getName() + " to " +
                 shortestPath.getEndVertex().getName() + " with " + shortestPath.getEdgeList().size() + " steps");
