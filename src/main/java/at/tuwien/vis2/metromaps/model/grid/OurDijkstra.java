@@ -98,10 +98,16 @@ public class OurDijkstra {
     }
 
     public void updateBendCosts(GridEdge incomingEdge, GridEdge outgoingEdge) {
+
         if (incomingEdge == null) {
             outgoingEdge.updateCosts(GridEdge.BendCost.C_180);
             return;
         }
+
+        if (incomingEdge.equals(outgoingEdge)) {
+            return;
+        }
+
         int centerVertexX = incomingEdge.getDestination().getIndexX();
         int centerVertexY = incomingEdge.getDestination().getIndexY();
 
