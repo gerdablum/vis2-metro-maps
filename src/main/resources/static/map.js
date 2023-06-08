@@ -138,7 +138,7 @@ function fetchData(cityName) {
         // handle success
         stationMarker = [];
         for (var node of response.data) {
-            var text = node.name;
+            var text = node.name + " " + node.coordinates;
             stationMarker.push(L.marker(node.coordinates).bindTooltip(text).openTooltip());
         }
       })

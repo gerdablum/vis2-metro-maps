@@ -51,7 +51,7 @@ public class GridGraph {
         // (Latitude, Longitude); lat=horizontal,lon=vertikal
         // add edges
         for (int y = 0; y <= numberOfVerticesVertical; y++) {
-            for (int x = 0; x <numberOfVerticesHorizontal; x++) {
+            for (int x = 0; x <= numberOfVerticesHorizontal; x++) {
 
                 int finalY = y;
                 int finalX = x;
@@ -104,7 +104,7 @@ public class GridGraph {
 
 
     public ShortestPath processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph, String lineName) {
-        if (sourceFromInputGraph.getName().equals("Heiligenstadt") || targetFromInputGraph.getName().equals("Spittelau")) {
+        if (sourceFromInputGraph.getName().equals("Seestadt") || targetFromInputGraph.getName().equals("Aspern Nord")) {
             int a = 1;
         }
         logger.info("Routing a path from " + sourceFromInputGraph.getName() + " to " + targetFromInputGraph.getName());
