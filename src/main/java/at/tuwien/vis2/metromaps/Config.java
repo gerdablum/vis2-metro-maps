@@ -14,6 +14,6 @@ public class Config {
 
     @Bean
     public MetroDataProvider metroDataProvider(@Value("classpath:exports/UBAHNOGD_UBAHNHALTOGD.json") Resource data) {
-        return new PaperMetroDataService();
+        return new PaperMetroDataService(); // PaperMetroDataService // FakeDataService
     }
 }
