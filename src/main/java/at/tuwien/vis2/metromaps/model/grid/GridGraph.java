@@ -102,8 +102,6 @@ public class GridGraph {
         numberOfVerticesVertical = (int) Math.ceil(heightInputGraph / d);
     }
 
-
-
     public ShortestPath processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph, String lineName) {
         if (sourceFromInputGraph.getName().equals("Seestadt") || targetFromInputGraph.getName().equals("Aspern Nord")) {
             int a = 1;
@@ -152,9 +150,9 @@ public class GridGraph {
 //        }
 
         ShortestPath shortestPath = getShortestPathBetweenTwoSets((sourceCandidates), (targetCandidates), previouslyUsedEdge);
-       if (shortestPath == null) {
-           return null;
-       }
+        if (shortestPath == null) {
+            return null;
+        }
         // set already used edges to inf and mark grid edge as taken
         shortestPath.getEdgeList().forEach(gridEdge -> {
             gridEdge.setTaken(edgeFromInputGraph.getLineNames(), lineName);
@@ -301,6 +299,77 @@ public class GridGraph {
 
     }
 
+    public void calculateStationLabelling(List<List<GridVertex>> allVertices, List<List<GridEdge>> allPaths) {          // TODO
+        Map<String, GridVertex> uniqueVerticesByStation = new HashMap<>();
+        for (List<GridVertex> vertices : allVertices) {
+            for (GridVertex vertex : vertices) {
+                String stationName = vertex.getStationName();
+                uniqueVerticesByStation.put(stationName, vertex);
+            }
+        }
+        uniqueVerticesByStation.remove(null);
+
+        int i = uniqueVerticesByStation.size();
+        for (Map.Entry<String, GridVertex> entry : uniqueVerticesByStation.entrySet()) {
+            String stationName = entry.getKey();
+            GridVertex vertex = entry.getValue();
+            System.out.println("Station: " + stationName + ", Vertex: " + vertex);
+
+
+            Set<GridEdge> adjacentEdges = gridGraph.outgoingEdgesOf(vertex);
+
+            for (GridEdge e : adjacentEdges) {// if path not used => place labelling there
+                if (!allPaths.stream().anyMatch(path -> path.contains(e))) {
+                    if(e.getDestination().getName().equals(vertex.getName())) {
+                        e.reverse();
+                    }
+                    System.out.println("empty edge: " + e.getDestination().getName() + " " + e.getSource().getName());
+                    double[] midpointCoords = getMidpointCoordinates(vertex, e.getDestination());
+                    double midpointX = midpointCoords[0];
+                    double midpointY = midpointCoords[1];
+                    System.out.println("Midpoint coordinates: (" + midpointX + ", " + midpointY + ")");
+                    vertex.setLabelCoordinates(midpointCoords);
+                    break;
+                } else {
+                    //System.out.println("edge: " + e.getDestination().getName() + " " + e.getSource().getName() + " is in allPaths");
+                }
+            }
+        }
+        System.out.println("Amount: ********** " + i);
+    }
+    public double[] getMidpointCoordinates(GridVertex centerVertex, GridVertex targetVertex) {
+        double centerLatitude = centerVertex.getCoordinates()[0];
+        double centerLongitude = centerVertex.getCoordinates()[1];
+        double targetLatitude = targetVertex.getCoordinates()[0];
+        double targetLongitude = targetVertex.getCoordinates()[1];
+
+        double midpointLatitude = (centerLatitude + targetLatitude) / 2.0;
+        double midpointLongitude = (centerLongitude + targetLongitude) / 2.0;
+
+        return new double[] { midpointLatitude, midpointLongitude };
+    }
+
+
+    //    public void calculateStationLabelling() {          // TODO
+//        int i =0;
+//        for (GridVertex vertex : gridGraph.vertexSet()) {
+//            if (vertex.isTaken()) {
+//                System.out.println("calculate label position for: " + vertex.getName() + vertex.getStationName());
+//                Set<GridEdge> adjacentEdges = gridGraph.outgoingEdgesOf(vertex);
+//                adjacentEdges.forEach(e -> {
+//                    if (e.getDestination().equals(vertex.getName())) {
+//                        //System.out.println(e.getDestination().getName() + vertex.getName());
+//                        e.reverse();
+//                    }
+//                    if (e.isTaken()) {
+//                        //System.out.println("edge: " + e.getDestination().getName());
+//                    };
+//                    System.out.println("edge: " + e.getDestination().getName());
+//
+//                });
+//            }
+//        }
+//    }
     public void printToCommandLine() {
         Iterator<GridVertex> iter = new DepthFirstIterator<>(gridGraph);
         while (iter.hasNext()) {

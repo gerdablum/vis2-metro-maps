@@ -10,7 +10,6 @@ public class GridEdge {
         if (isLineTaken == null) {
             return true;
         }
-
         return isLineTaken;
     }
 
@@ -100,6 +99,10 @@ public class GridEdge {
         GridVertex temp = this.destination;
         this.destination = this.source;
         this.source = temp;
+    }
+
+    public boolean isTaken() {
+        return !takenLines.isEmpty();
     }
 
     @Override

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class OctalinearGraphCalculator {
@@ -18,6 +19,9 @@ public class OctalinearGraphCalculator {
     private MetroDataProvider metroDataProvider;
     Map<String, GridGraph> gridgraphs;
     Map<String, List<List<GridEdge>>> outputGraphs;
+
+    List<List<GridEdge>> allPaths = new ArrayList<>();
+    List<List<GridVertex>> allVertices = new ArrayList<>();
 
     @Autowired
     public OctalinearGraphCalculator(MetroDataProvider metroDataProvider) {
@@ -43,8 +47,7 @@ public class OctalinearGraphCalculator {
                 inputGraph.getLeftLowerCoordinates(), inputGraph.getRightUpperCoordinates());
         //List<InputLineEdge> edgesSorted = inputGraph.sortEdges();
 
-        List<List<GridEdge>> allPaths = new ArrayList<>();
-        List<List<GridVertex>> allVertices = new ArrayList<>();
+
         for (String lineName: allLineNames) {
             gridGraph.reopenSinkEdgesFor(lineName, allVertices);
             //gridGraph.closeSinkEdgesAroundVertices(lineName, allVertices);
@@ -59,7 +62,7 @@ public class OctalinearGraphCalculator {
             }
 
         }
-
+        gridGraph.calculateStationLabelling(allVertices, allPaths);
         gridgraphs.put(city, gridGraph);
         outputGraphs.put(city, allPaths);
         return allPaths;
