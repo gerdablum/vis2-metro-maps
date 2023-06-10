@@ -1,5 +1,6 @@
 package at.tuwien.vis2.metromaps.api.m10;
 
+import at.tuwien.vis2.metromaps.model.input.InputLine;
 import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
 import at.tuwien.vis2.metromaps.model.MetroDataProvider;
 import at.tuwien.vis2.metromaps.model.input.InputStation;
@@ -40,13 +41,15 @@ public class M10Service implements MetroDataProvider {
         try {
             M10Features subwayStations = objectMapper.readValue(data.getFile(), M10Features.class);
             for(M10Features.Feature feature : subwayStations.getFeatures()) {
+                List<InputLine> lines = Arrays.asList(new InputLine(String.valueOf(feature.getLineName()), ""));
+
                 if("Point".equals(feature.getType())) {
                     InputStation station = new InputStation(feature.getStationName(), feature.getId(), feature.getCoordinates()[0],
-                            Arrays.asList(String.valueOf(feature.getLineName())));
+                            lines);
                     allStations.put(station.getName(), station);
                 }
                 else if("LineString".equals(feature.getType())) {
-                    InputLineEdge edge = new InputLineEdge(feature.getId(), feature.getCoordinates(), Collections.singletonList(String.valueOf(feature.getLineName())));
+                    InputLineEdge edge = new InputLineEdge(feature.getId(), feature.getCoordinates(), lines);
                     allEdges.put(edge.getId(), edge);
                 }
                 else {
@@ -71,13 +74,13 @@ public class M10Service implements MetroDataProvider {
 
     private List<InputStation> getAllStationsForLine(String lineId, String city) {
         return getAllStations(city).stream()
-                .filter(station -> station.getLineNames().contains(lineId)).toList();
+                .filter(station -> station.getLine().contains(lineId)).toList();
     }
 
     @Override
     public List<InputLineEdge> getAllGeograficEdgesForLine(String lineId, String city) {
         return allEdges.values().stream()
-                .filter(edge -> edge.getLineNames().contains(lineId))
+                .filter(edge -> edge.getLines().contains(lineId))
                 .collect(Collectors.toList());
     }
 
@@ -98,8 +101,9 @@ public class M10Service implements MetroDataProvider {
         for (int i = 0; i < orderedStations.size() -1; i++) {
             var currentStation = orderedStations.get(i);
             var nextStation = orderedStations.get(i+1);
+            InputLine line = new InputLine(lineId, "");
             InputLineEdge edge = new InputLineEdge(currentStation.getId()+"+"+nextStation.getId(), currentStation, nextStation,
-                    new double[][]{currentStation.getCoordinates(), nextStation.getCoordinates()}, Collections.singletonList(lineId));
+                    new double[][]{currentStation.getCoordinates(), nextStation.getCoordinates()}, Collections.singletonList(line));
             orderedEdges.add(edge);
         }
         return orderedEdges;

@@ -1,5 +1,7 @@
 package at.tuwien.vis2.metromaps.model.grid;
 
+import at.tuwien.vis2.metromaps.model.input.InputLine;
+
 import java.util.*;
 
 // TODO this class is to wrap default edge and prevent serializing errors with jackson
@@ -37,6 +39,8 @@ public class GridEdge {
 
     private Map<String, Boolean> takenLines;
 
+    private List<String> colors;
+
     public GridEdge(GridVertex source, GridVertex destination, BendCost bendCost ) {
         this.source = source;
         this.destination = destination;
@@ -56,19 +60,18 @@ public class GridEdge {
         return bendCost;
     }
 
-    public double updateCosts(double offsetCosts) {
+    public void updateCosts(double offsetCosts) {
         if (costs == Double.MAX_VALUE) {
-            return costs;
+            return;
         }
         this.offsetCosts = offsetCosts;
         costs = this.bendCost.getWeight() + offsetCosts;
-        return costs;
     }
 
-    public void setTaken(List<String> lines, String lineName) {
-        for (String line : lines) {
-            if (takenLines.get(line) == null) {
-                takenLines.put(line, line.equals(lineName));
+    public void setTaken(List<InputLine> lines, String lineName) {
+        for (InputLine line : lines) {
+            if (takenLines.get(line.getName()) == null) {
+                takenLines.put(line.getName(), line.getName().equals(lineName));
             }
         }
         takenLines.put(lineName, true);
@@ -83,13 +86,12 @@ public class GridEdge {
         bendCost = BendCost.C_180;
     }
 
-    public double updateCosts(BendCost newBendCost) {
+    public void updateCosts(BendCost newBendCost) {
         if (costs == Double.MAX_VALUE) {
-            return costs;
+            return;
         }
         this.bendCost = newBendCost;
         costs = this.bendCost.getWeight() + offsetCosts;
-        return costs;
     }
 
     public double getCosts() {
@@ -100,6 +102,14 @@ public class GridEdge {
         GridVertex temp = this.destination;
         this.destination = this.source;
         this.source = temp;
+    }
+
+    public List<String> getColors() {
+        return colors;
+    }
+
+    public void setColors(List<String> colors) {
+        this.colors = colors;
     }
 
     @Override

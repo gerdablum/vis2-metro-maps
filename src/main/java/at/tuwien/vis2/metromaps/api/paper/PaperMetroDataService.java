@@ -2,6 +2,7 @@ package at.tuwien.vis2.metromaps.api.paper;
 
 import at.tuwien.vis2.metromaps.model.MetroDataProvider;
 import at.tuwien.vis2.metromaps.model.Utils;
+import at.tuwien.vis2.metromaps.model.input.InputLine;
 import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
 import at.tuwien.vis2.metromaps.model.input.InputStation;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,15 +62,16 @@ public class PaperMetroDataService implements MetroDataProvider {
 
                 wrapper.allInputLineEdges = new HashMap<>();
                 for (PaperFeatures.Feature line : wrapper.allLines) {
-                    List<String> lineNames = line.getProperties().getLines().stream().map(l -> l.getLabel()).collect(Collectors.toList());
+                    List<PaperFeatures.Line> lines = line.getProperties().getLines();
+                    List<InputLine> inputLine = lines.stream().map(l -> new InputLine(l.getLabel(), l.getId())).collect(Collectors.toList());
                     String from = line.getProperties().getFrom();
                     String to = line.getProperties().getTo();
-                    wrapper.allInputStations.get(from).addLineNames(lineNames);
-                    wrapper.allInputStations.get(to).addLineNames(lineNames);
+                    wrapper.allInputStations.get(from).addLines(inputLine);
+                    wrapper.allInputStations.get(to).addLines(inputLine);
                     InputStation startStation = wrapper.allInputStations.get(from);
                     InputStation endStations = wrapper.allInputStations.get(to);
                     InputLineEdge lineEdge = new InputLineEdge(line.getProperties().getId(), startStation, endStations,
-                            line.getCoordinates(), lineNames);
+                            line.getCoordinates(), inputLine);
                     wrapper.allInputLineEdges.put(lineEdge.getId(), lineEdge);
                 }
 
@@ -105,9 +107,10 @@ public class PaperMetroDataService implements MetroDataProvider {
         Collection<InputLineEdge> lineEdges = wrapper.allInputLineEdges.values();
         List<InputLineEdge> outputList = new ArrayList<>();
         for (InputLineEdge edge:  lineEdges) {
-            if (edge.getLineNames().contains(lineId)) {
-                outputList.add(edge);
-            }
+            for (InputLine lineNames : edge.getLines())
+                if (lineNames.getName().contains(lineId)) {
+                    outputList.add(edge);
+                }
         }
         return outputList;
     }
@@ -117,7 +120,7 @@ public class PaperMetroDataService implements MetroDataProvider {
         List<InputLineEdge> allGeograficEdges = getAllGeograficEdges(city);
         Set<String> lineNames = new HashSet<>();
         for (InputLineEdge edge: allGeograficEdges) {
-            lineNames.addAll(edge.getLineNames());
+            lineNames.addAll(edge.getLines().stream().map(InputLine::getName).toList());
         }
         return lineNames.stream().toList();
     }

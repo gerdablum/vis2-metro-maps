@@ -1,11 +1,10 @@
 package at.tuwien.vis2.metromaps.model.grid;
 
+import at.tuwien.vis2.metromaps.model.input.InputLine;
 import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
 import at.tuwien.vis2.metromaps.model.input.InputStation;
 import at.tuwien.vis2.metromaps.model.Utils;
 import org.jgrapht.Graph;
-import org.jgrapht.GraphPath;
-import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.builder.GraphTypeBuilder;
 import org.jgrapht.traverse.DepthFirstIterator;
 import org.slf4j.Logger;
@@ -157,7 +156,7 @@ public class GridGraph {
        }
         // set already used edges to inf and mark grid edge as taken
         shortestPath.getEdgeList().forEach(gridEdge -> {
-            gridEdge.setTaken(edgeFromInputGraph.getLineNames(), lineName);
+            gridEdge.setTaken(edgeFromInputGraph.getLines(), lineName);
             gridEdge.setCostsInf();
             gridGraph.setEdgeWeight(gridEdge, gridEdge.getCosts());
         });
@@ -165,12 +164,12 @@ public class GridGraph {
         List<GridVertex> vertexList = shortestPath.getVertexList();
         vertexList.remove(shortestPath.getEndVertex());
         for (GridVertex vertex : vertexList) {
-            vertex.setTakenLineNames(sourceFromInputGraph.getLineNames(), lineName);
+            vertex.setTakenLineNames(sourceFromInputGraph.getLine(), lineName);
             // do not allow loops
             gridGraph.outgoingEdgesOf(vertex).forEach(v -> v.setCostsInf());
         }
         vertexList.add(shortestPath.getEndVertex());
-        shortestPath.getEndVertex().setTakenLineNames(targetFromInputGraph.getLineNames(), lineName);
+        shortestPath.getEndVertex().setTakenLineNames(targetFromInputGraph.getLine(), lineName);
 
         currentLineName = lineName;
         previouslyUsedEdge = shortestPath.getEdgeList().get(shortestPath.getEdgeList().size() -1);
@@ -180,7 +179,7 @@ public class GridGraph {
         shortestPath.getStartVertex().setTakenWith(sourceFromInputGraph.getName());
         shortestPath.getEndVertex().setTakenWith(targetFromInputGraph.getName());
 
-        // TODO all bend edges (edges in between ingoing and outgoing path of a vertex - smaller angle) have cost inf
+        setColors(shortestPath.getEdgeList(), edgeFromInputGraph);
 
         return shortestPath;
     }
@@ -225,6 +224,13 @@ public class GridGraph {
                     UpdateGridGraphCost(edgesCandidates, offsetcosts);
                 }
             }
+        }
+    }
+
+    private void setColors(List<GridEdge> gridEdges, InputLineEdge inputEdge) {
+        for (GridEdge edge: gridEdges) {
+            List<String> colors = inputEdge.getLines().stream().map(InputLine::getColor).toList();
+            edge.setColors(colors);
         }
     }
 

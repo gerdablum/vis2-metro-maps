@@ -1,5 +1,7 @@
 package at.tuwien.vis2.metromaps.model.grid;
 
+import at.tuwien.vis2.metromaps.model.input.InputLine;
+
 import java.util.*;
 
 public class GridVertex {
@@ -85,9 +87,9 @@ public class GridVertex {
         return takenLines;
     }
 
-    public void setTakenLineNames(List<String> lineNames, String lineName) {
-        for (String line : lineNames) {
-            this.takenLines.putIfAbsent(line, false);
+    public void setTakenLineNames(List<InputLine> lineNames, String lineName) {
+        for (InputLine line : lineNames) {
+            this.takenLines.putIfAbsent(line.getName(), false);
         }
         this.takenLines.put(lineName, true);
     }
