@@ -15,7 +15,6 @@ var viewArray = {
     london: { lat: 51.507359, lon: -0.136439, zoom: 13, name: "London" },
     nyc_subway: { lat: 40.730610, lon: -73.935242, zoom: 11, name: "New York" }
 };
-var rotate = 'rotate(90deg)';
 
 var labelOptions = {
     className: 'leaflet-tooltip-own',
@@ -23,19 +22,15 @@ var labelOptions = {
     direction: 'center',
     opacity: 1,
     interactive: false,
-    transformOrigin: 'bottom left',
-    rotationAngle: 90,
-    rotate: 90
 };
 var invisibleMarkerOptions = {
-    icon: L.divIcon({
+    /*icon: L.divIcon({
         className: 'invisible-marker',
         html: '',
         iconSize: [1, 1]
-    }),
+    }),*/
     interactive: false,
-    rotationAngle: 90,
-    transform: 'rotate(90deg)'
+    rotationAngle: 45       // this is for rotating blue markers
 };
 var stationMarkerOptions = {
     color: 'black',
@@ -43,10 +38,6 @@ var stationMarkerOptions = {
     fillOpacity: 1,
 };
 debug = false;
-
-L.marker([48.8631169, 16.3708919], {
-    rotationAngle: 90
-}).addTo(map);
 
 loadMap();
 function loadMap() {
