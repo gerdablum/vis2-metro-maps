@@ -10,6 +10,7 @@ public class GridVertex {
     private int indexX;
     private int indexY;
     private double[] coordinates;
+    private double[] labelCoordinates;
     private String stationName;
     private boolean isTaken = false;
     private Map<String, Boolean> takenLines;
@@ -52,10 +53,20 @@ public class GridVertex {
         this.indexY = indexY;
     }
 
+    public void setCoordinates(double[] coordinates) {
+        this.coordinates = coordinates;
+    }
+
     public double[] getCoordinates() {
         return coordinates;
     }
+    public void setLabelCoordinates(double[] labelCoordinates) {
+        this.labelCoordinates = labelCoordinates;
+    }
 
+    public double[] getLabelCoordinates() {
+        return labelCoordinates;
+    }
     public String getStationName() {
         return stationName;
     }
@@ -77,11 +88,6 @@ public class GridVertex {
         isTaken = false;
         this.stationName = null;
     }
-
-    public void setCoordinates(double[] coordinates) {
-        this.coordinates = coordinates;
-    }
-
 
     public Map<String, Boolean> getTakenLines() {
         return takenLines;

@@ -14,3 +14,41 @@ margin: 0 auto;
 .dropdown {
     margin-top: 10px; /* Abstand zwischen den Elementen hinzufügen */
 }
+
+.custom-tooltip {
+    font-size: 14px;
+    background-color: transparent;
+    box-shadow: none;
+    border: none;
+    color: #000;
+}
+
+/*
+.leaflet-tooltip-left:before {
+    right: 0;
+    margin-right: -12px;
+    border-left-color: rgba(0, 0, 0, 0.4);
+}
+.leaflet-tooltip-right:before {
+    left: 0;
+    margin-left: -12px;
+    border-right-color: rgba(0, 0, 0, 0.4);
+}
+*/
+
+.leaflet-tooltip-own {
+    position: absolute;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 4px;
+    background-color: rgba(0, 0, 0, 0);
+    border: 0px solid #000;
+    color: #000;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    pointer-events: none;
+    box-shadow: none;
+}

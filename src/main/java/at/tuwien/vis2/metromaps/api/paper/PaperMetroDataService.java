@@ -63,7 +63,7 @@ public class PaperMetroDataService implements MetroDataProvider {
                 wrapper.allInputLineEdges = new HashMap<>();
                 for (PaperFeatures.Feature line : wrapper.allLines) {
                     List<PaperFeatures.Line> lines = line.getProperties().getLines();
-                    List<InputLine> inputLine = lines.stream().map(l -> new InputLine(l.getLabel(), l.getId())).collect(Collectors.toList());
+                    List<InputLine> inputLine = lines.stream().map(l -> new InputLine(l.getLabel(), l.getColor())).collect(Collectors.toList());
                     String from = line.getProperties().getFrom();
                     String to = line.getProperties().getTo();
                     wrapper.allInputStations.get(from).addLines(inputLine);

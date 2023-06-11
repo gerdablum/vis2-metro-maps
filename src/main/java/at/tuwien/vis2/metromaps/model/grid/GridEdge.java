@@ -12,7 +12,6 @@ public class GridEdge {
         if (isLineTaken == null) {
             return true;
         }
-
         return isLineTaken;
     }
 
