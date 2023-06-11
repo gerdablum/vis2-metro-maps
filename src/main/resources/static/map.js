@@ -3,6 +3,8 @@ var map = L.map('map').setView([48.210033, 16.363449], 13);
 var stationMarker = [];
 var gridMarker = [];
 var gridEdges = [];
+var gridSize = 0.5;
+var distanceR = 0.77;
 var mapLayer = null;
 var browserControl = null;
 var selectedCity = "vienna";
@@ -13,36 +15,45 @@ var viewArray = {
     london: { lat: 51.507359, lon: -0.136439, zoom: 13, name: "London" },
     nyc_subway: { lat: 40.730610, lon: -73.935242, zoom: 11, name: "New York" }
 };
+var rotate = 'rotate(90deg)';
 
 var labelOptions = {
     className: 'leaflet-tooltip-own',
     permanent: true,
     direction: 'center',
     opacity: 1,
-    interactive: false
+    interactive: false,
+    transformOrigin: 'bottom left',
+    rotationAngle: 90,
+    rotate: 90
 };
 var invisibleMarkerOptions = {
     icon: L.divIcon({
         className: 'invisible-marker',
         html: '',
-        iconSize: [1, 1]  // Set the icon size to a very small value
+        iconSize: [1, 1]
     }),
-    interactive: false
+    interactive: false,
+    rotationAngle: 90,
+    transform: 'rotate(90deg)'
 };
 var stationMarkerOptions = {
     color: 'black',
     fillColor: 'white',
-    fillOpacity: 1
+    fillOpacity: 1,
 };
 debug = false;
 
+L.marker([48.8631169, 16.3708919], {
+    rotationAngle: 90
+}).addTo(map);
 
 loadMap();
 function loadMap() {
+    clearMap();
     stationMarker = [];
     gridMarker = [];
     gridEdges = [];
-    if (mapLayer) {map.removeLayer(mapLayer);}
     var cityData = viewArray[selectedCity];
     if (cityData) { map.setView([cityData.lat, cityData.lon], cityData.zoom); }
     var pdfOptions = {
@@ -97,8 +108,10 @@ L.control.browserPrint({
 
 
 function fetchOctilinear(cityName) {
-
-    axios.get('/' + cityName + '/octilinear')
+    var url = '/' + encodeURIComponent(cityName) + '/octilinear';
+    url += '?gridSize=' + encodeURIComponent(gridSize);
+    url += '&distanceR=' + encodeURIComponent(distanceR);
+    axios.get(url)
         .then(function (response) {
             gridEdges = [];
             gridNode = [];
@@ -108,7 +121,6 @@ function fetchOctilinear(cityName) {
                      L.polyline([points.source.coordinates,
                      points.destination.coordinates], {color: 'red'}).bindTooltip(text).openTooltip().addTo(map);
                 }
-
             }
             fetchGrid(cityName)
         })
@@ -119,7 +131,7 @@ function fetchOctilinear(cityName) {
 }
 
 function fetchGrid(cityName) {
-    axios.get('/' + cityName + '/gridgraph')          // ' + selectedCity + '
+    axios.get('/' + cityName + '/gridgraph')
         .then(function (response) {
             console.log('URL:', response.config.url);
             gridEdges = [];
@@ -140,13 +152,14 @@ function fetchGrid(cityName) {
                     var customTooltip = L.tooltip(labelOptions);
                     customTooltip.setContent(gridNode.stationName);
                     gridMarker.push(L.marker(gridNode.labelCoordinates, invisibleMarkerOptions).bindTooltip(customTooltip).openTooltip());
+
                     if (gridNode.stationName === "Stephansplatz" || gridNode.stationName === "Karlsplatz" || gridNode.stationName === "Taubstummengasse") {
                         //gridMarker.push(invisibleMarker);
                         //gridMarker.push(L.circleMarker(gridNode.coordinates, color).bindTooltip(customTooltip).openTooltip());
                         //gridMarker.push(L.circleMarker(gridNode.labelCoordinates, color).bindTooltip(customTooltip).openTooltip());
                     }
                 }
-                else if (debug) {               // DEBUG
+                if (debug) {               // DEBUG
                     color =  {color: 'blue'}
                     gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(text).openTooltip());
                 }
@@ -295,6 +308,21 @@ function exportMapToPDF() {
     });
 }*/
 
+function clearMap() {
+    stationMarker.forEach(marker => map.removeLayer(marker));
+    gridMarker.forEach(marker => map.removeLayer(marker));
+    gridEdges.forEach(edge => map.removeLayer(edge));
+    map.eachLayer(layer => {
+        if (layer instanceof L.Polyline) {
+            map.removeLayer(layer);
+        }
+    });
+    if (mapLayer) {
+        map.removeLayer(mapLayer);
+        mapLayer = null;
+    }
+}
+
 function toggleButtonState(button) {
     var buttons = document.querySelectorAll('.btn-group-toggle .btn');
     buttons.forEach(function(btn) {
@@ -348,3 +376,14 @@ dropdownItems.forEach(function(item) {
     });
 });
 
+document.getElementById("changeGridCells").addEventListener("click", function() {
+    var gridSizeInput = parseFloat(document.getElementById("gridSize").value);
+    var distanceRInput = parseFloat(document.getElementById("distanceR").value);
+
+    console.log("Grid Size:", gridSizeInput);
+    console.log("Distance:", distanceRInput);
+
+    gridSize = gridSizeInput ? parseFloat(gridSizeInput) : null;
+    distanceR = distanceRInput ? parseFloat(distanceRInput) : null;
+    loadMap();
+});

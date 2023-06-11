@@ -21,6 +21,7 @@ margin: 0 auto;
     box-shadow: none;
     border: none;
     color: #000;
+    rotationAngle: 90;
 }
 
 /*
@@ -45,10 +46,19 @@ margin: 0 auto;
     border: 0px solid #000;
     color: #000;
     white-space: nowrap;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
     pointer-events: none;
     box-shadow: none;
+    /*
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+
+    transformOrigin: 'bottom left';*/
+    rotationAngle: 90;
+    -webkit-transform: 'rotate(90deg)';
+    -moz-transform: 'rotate(90deg)';
+    -o-transform: 'rotate(90deg)';
+    -ms-transform: rotate(90deg);
+    transform: rotate(90deg);
 }

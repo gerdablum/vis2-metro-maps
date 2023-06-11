@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 public class GridGraph {
 
     private final Graph<GridVertex, GridEdge> gridGraph;
-    private double d = 0.5; // threshold (in km) we would like to have between each grid cell
-    private double r = 0.77; // distance between source and target candidates to match input edges onto grid
+    private double d = 0.5; // GRID SIZE: threshold (in km) we would like to have between each grid cell
+    private double r = 0.77; // DISTANCE: distance between source and target candidates to match input edges onto grid
     private double costM = 0.5;  // move penalty
     private double costH = 1; // hop cost of using a grid edge
     private int numberOfVerticesHorizontal;
@@ -31,7 +31,9 @@ public class GridGraph {
     public Set<GridVertex> sourceCandidates = new HashSet<>();
     public Set<GridVertex> targetCandidates = new HashSet<>();
 
-    public GridGraph(double widthInputGraph, double heightInputGraph, double[] leftUpper, double[] leftLower, double[] rightUpper) {
+    public GridGraph(double widthInputGraph, double heightInputGraph, double[] leftUpper, double[] leftLower, double[] rightUpper, double dinput, double rinput) {
+        d = dinput;
+        r = rinput;
 
         calcSizeOfGridGraph(widthInputGraph, heightInputGraph);
 
@@ -391,10 +393,12 @@ public class GridGraph {
         // this is to allow double routing if two lines share the same edge
         List<GridVertex> vertices = allVertices.stream().flatMap(Collection::stream).toList();
         vertices.forEach(v -> {
-            Set<GridEdge> gridEdges = gridGraph.outgoingEdgesOf(v);
-            gridEdges.forEach( g -> {
-                g.resetCosts();
-            });
+            if(gridGraph.containsVertex(v)) {
+                Set<GridEdge> gridEdges = gridGraph.outgoingEdgesOf(v);
+                gridEdges.forEach( g -> {
+                    g.resetCosts();
+                });
+            }
         });
     }
 
@@ -411,5 +415,12 @@ public class GridGraph {
                 adjacentEdges.forEach(e -> e.resetCosts());
             }
         });
+    }
+
+    public boolean checkGridParameters(double gridSize, double distanceR) {
+        if(gridSize == r && distanceR == d) {
+            return true;
+        }
+        return false;
     }
 }
