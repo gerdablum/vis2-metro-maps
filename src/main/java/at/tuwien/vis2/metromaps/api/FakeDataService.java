@@ -4,6 +4,7 @@ import at.tuwien.vis2.metromaps.model.MetroDataProvider;
 import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
 import at.tuwien.vis2.metromaps.model.input.InputStation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -25,37 +26,33 @@ public class FakeDataService implements MetroDataProvider {
         InputLineEdge edge3 = new InputLineEdge("3", leopoldau, grossfelds, new double[1][0], Collections.singletonList("3"));
         InputLineEdge edge4 = new InputLineEdge("4", grossfelds, aderklaaer, new double[1][0], Collections.singletonList("3"));
 
-        this.stations = Arrays.asList(ottakring, kendlerstrasse, huettldorferstr, leopoldau, aderklaaer, grossfelds);
-        this.edges = Arrays.asList(edge1, edge2, edge3, edge4);
+        this.stations = Arrays.asList(ottakring, kendlerstrasse, huettldorferstr);
+        this.edges = Arrays.asList(edge1, edge2);
     }
 
     @Override
-    public List<InputStation> getAllStations() {
+    public List<InputStation> getAllStations(String city) {
         return stations;
     }
 
     @Override
-    public List<InputLineEdge> getAllGeograficEdges() {
+    public List<InputLineEdge> getAllGeograficEdges(String city) {
+        return this.edges;
+    }
+
+
+    @Override
+    public List<InputLineEdge> getAllGeograficEdgesForLine(String lineId, String city) {
         return this.edges;
     }
 
     @Override
-    public List<InputStation> getAllStationsForLine(String lineId) {
-        return this.stations;
-    }
-
-    @Override
-    public List<InputLineEdge> getEdgesWithoutStationInformation(String lineId) {
+    public List<InputLineEdge> getOrderedEdgesForLine(String lineId, String city) {
         return this.edges;
     }
 
     @Override
-    public List<InputStation> getOrderedStationsForLine(String lineId) {
-        return this.stations;
-    }
-
-    @Override
-    public List<InputLineEdge> getOrderedEdgesForLine(String lineId) {
-        return this.edges;
+    public List<String> getAllLineNames(String city) {
+        return Arrays.asList("1");
     }
 }

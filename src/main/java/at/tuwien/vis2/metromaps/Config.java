@@ -1,7 +1,8 @@
 package at.tuwien.vis2.metromaps;
 
 import at.tuwien.vis2.metromaps.api.FakeDataService;
-import at.tuwien.vis2.metromaps.api.M10Service;
+import at.tuwien.vis2.metromaps.api.m10.M10Service;
+import at.tuwien.vis2.metromaps.api.paper.PaperMetroDataService;
 import at.tuwien.vis2.metromaps.model.MetroDataProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,6 @@ public class Config {
 
     @Bean
     public MetroDataProvider metroDataProvider(@Value("classpath:exports/UBAHNOGD_UBAHNHALTOGD.json") Resource data) {
-        return new M10Service(data);
+        return new PaperMetroDataService(); // PaperMetroDataService // FakeDataService
     }
 }

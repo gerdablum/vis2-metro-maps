@@ -1,5 +1,6 @@
 package at.tuwien.vis2.metromaps.model.input;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class InputStation {
@@ -18,7 +19,11 @@ public class InputStation {
     private ProcessingState processingState;
 
     public InputStation(String name, String id, double[] coordinates, List<String> lineNames) {
-        this.name = name;
+        if (name == null) {
+            this.name = id;
+        } else {
+            this.name = name;
+        }
         this.id = id;
         this.coordinates = coordinates;
         this.lineNames = lineNames;
@@ -82,5 +87,17 @@ public class InputStation {
     @Override
     public String toString() {
         return this.name + " (" + this.getId() + ")";
+    }
+
+    public void addLineNames(List<String> lineNames) {
+        if (this.lineNames == null) {
+            this.lineNames = new ArrayList<>(lineNames);
+        }
+        for (String line: lineNames) {
+            if (!this.lineNames.contains(line)) {
+                this.lineNames.add(line);
+            }
+        }
+
     }
 }

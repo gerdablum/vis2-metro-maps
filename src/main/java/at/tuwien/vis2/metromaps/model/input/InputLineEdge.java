@@ -1,5 +1,8 @@
 package at.tuwien.vis2.metromaps.model.input;
 
+import at.tuwien.vis2.metromaps.model.grid.GridVertex;
+
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -19,13 +22,13 @@ public class InputLineEdge {
         this.startStation = startStation;
         this.endStation = endStation;
         this.coordinates = coordinates;
-        this.lineNames = lineNames;
+        this.lineNames = new ArrayList<>(lineNames);
     }
 
     public InputLineEdge(String id, double[][] coordinates, List<String> lineNames) {
         this.id = id;
         this.coordinates = coordinates;
-        this.lineNames = lineNames;
+        this.lineNames = new ArrayList<>(lineNames);
     }
 
     public String getId() {
@@ -69,5 +72,17 @@ public class InputLineEdge {
             return hasSameLineEdges && (this.startStation.equals(((InputLineEdge) obj).getStartStation()) && this.endStation.equals(((InputLineEdge) obj).getEndStation()));
         }
         return false;
+    }
+
+    public void reverse() {
+        InputStation temp = this.endStation;
+        this.endStation = this.startStation;
+        this.startStation = temp;
+    }
+
+    public void addLineName(String lineId) {
+        if (!lineNames.contains(lineId)) {
+            lineNames.add(lineId);
+        }
     }
 }

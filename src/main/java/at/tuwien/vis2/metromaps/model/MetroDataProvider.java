@@ -7,15 +7,13 @@ import java.util.List;
 
 public interface MetroDataProvider {
 
-    List<InputStation> getAllStations();
+    List<InputStation> getAllStations(String city);
 
-    List<InputLineEdge> getAllGeograficEdges();
+    List<InputLineEdge> getAllGeograficEdges(String city);
 
-    List<InputStation> getAllStationsForLine(String lineId);
+    List<InputLineEdge> getAllGeograficEdgesForLine(String lineId, String city);
 
-    List<InputLineEdge> getEdgesWithoutStationInformation(String lineId);
+    List<InputLineEdge> getOrderedEdgesForLine(String lineId, String city);
 
-    List<InputStation> getOrderedStationsForLine(String lineId);
-
-    List<InputLineEdge> getOrderedEdgesForLine(String lineId);
+    List<String> getAllLineNames(String city);
 }

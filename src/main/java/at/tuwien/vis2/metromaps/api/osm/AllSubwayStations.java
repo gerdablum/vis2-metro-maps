@@ -1,4 +1,4 @@
-package at.tuwien.vis2.metromaps.api;
+package at.tuwien.vis2.metromaps.api.osm;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
