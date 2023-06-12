@@ -70,6 +70,6 @@ public class OctalinearGraphCalculator {
     }
 
     public GridGraph getGridGraph(String city) {
-        return  gridgraphs.get(city);
+        return gridgraphs.get(city);
     }
 }

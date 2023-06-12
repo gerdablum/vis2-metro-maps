@@ -56,7 +56,8 @@ public class PaperMetroDataService implements MetroDataProvider {
 
                 wrapper.allInputStations = new HashMap<>();
                 for (PaperFeatures.Feature point : wrapper.allPoints) {
-                    wrapper.allInputStations.put(point.getProperties().getId(),new InputStation(point.getProperties().getStationLabel(),
+                    String name = normalizeStationName(point.getProperties().getStationLabel());
+                    wrapper.allInputStations.put(point.getProperties().getId(),new InputStation(name,
                             point.getProperties().getId(), point.getCoordinates()[0], null));
                 }
 
@@ -81,6 +82,13 @@ public class PaperMetroDataService implements MetroDataProvider {
             }
         }
 
+    }
+
+    private String normalizeStationName(String stationLabel) {
+        if (stationLabel == null) return null;
+        String truncated = stationLabel.replaceAll("\\(.*?\\)", "");
+        truncated = truncated.replaceAll("^U *|^S *\\+ *U *", "");
+        return truncated;
     }
 
     @Override
