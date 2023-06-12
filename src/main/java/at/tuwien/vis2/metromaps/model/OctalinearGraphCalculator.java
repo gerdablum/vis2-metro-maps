@@ -45,15 +45,15 @@ public class OctalinearGraphCalculator {
         inputGraph.calcBoundingBox();
         GridGraph gridGraph = new GridGraph(inputGraph.getWidth(), inputGraph.getHeight(), inputGraph.getLeftUpperCoordinates(),
                 inputGraph.getLeftLowerCoordinates(), inputGraph.getRightUpperCoordinates());
-        //List<InputLineEdge> edgesSorted = inputGraph.sortEdges();
+        List<InputLineEdge> edgesSorted = inputGraph.sortEdges();
 
 
-        for (String lineName: allLineNames) {
-            gridGraph.reopenSinkEdgesFor(lineName, allVertices);
+        //for (String lineName: allLineNames) {
             //gridGraph.closeSinkEdgesAroundVertices(lineName, allVertices);
-            List<InputLineEdge> edgesSorted = metroDataProvider.getOrderedEdgesForLine(lineName, city);
+            //List<InputLineEdge> edgesSorted = metroDataProvider.getOrderedEdgesForLine(lineName, city);
             for (InputLineEdge edge : edgesSorted) {
-                ShortestPath path = gridGraph.processInputEdge(edge, edge.getStartStation(), edge.getEndStation(), lineName);
+            gridGraph.reopenSinkEdgesFor("lineName", allVertices);
+                ShortestPath path = gridGraph.processInputEdge(edge, edge.getStartStation(), edge.getEndStation(), edge.getLineNames().get(0));
                 if (path == null) {
                     continue;
                 }
@@ -61,7 +61,7 @@ public class OctalinearGraphCalculator {
                 allVertices.add(path.getVertexList());
             }
 
-        }
+        //}
         gridGraph.calculateStationLabelling(allVertices, allPaths);
         gridgraphs.put(city, gridGraph);
         outputGraphs.put(city, allPaths);

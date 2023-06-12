@@ -25,7 +25,6 @@ public class OurDijkstra {
         while (unsettledVertices.size() != 0) {
             GridVertex current = getLowestDistanceVertex(unsettledVertices);
             if (current == null) {
-                logger.warn(String.format("cannot find any way from %s", previousEdge.toString()));
                 break;
             }
             if (current.equals(target)) {

@@ -393,7 +393,11 @@ public class GridGraph {
         vertices.forEach(v -> {
             Set<GridEdge> gridEdges = gridGraph.outgoingEdgesOf(v);
             gridEdges.forEach( g -> {
-                g.resetCosts();
+                if (!g.isTaken()) {
+                    g.resetCosts();
+                } else if (g.isClosedForLine(lineName)) {
+                    g.resetCosts();
+                }
             });
         });
     }

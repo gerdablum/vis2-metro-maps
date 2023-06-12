@@ -97,8 +97,22 @@ public class InputGraph {
     }
 
     public List<InputLineEdge> sortEdges() {
+        List<InputLineEdge> allEdges = new ArrayList<>(inputGraph.edgeSet());
+        List<InputLineEdge> allSortedEdges = new ArrayList<>();
+        while (!allEdges.isEmpty()) {
+            List<InputLineEdge> partSortedEdges = new ArrayList<>(sortPartEdges(allEdges));
+            allSortedEdges.addAll(partSortedEdges);
+
+            partSortedEdges.forEach(allEdges::remove);
+        }
+
+        return allSortedEdges;
+
+        // TODO sort graph also if it is not connected
+    }
+
+    private List<InputLineEdge> sortPartEdges(List<InputLineEdge> sortedEdges) {
         boolean containsDanglingVertices = true;
-        List<InputLineEdge> sortedEdges = new ArrayList<>();
         InputStation stationWithHighestLdeg = getStationWithHighestLdeg(false);
         stationWithHighestLdeg.setProcessingState(InputStation.ProcessingState.DANGLING);
         while (containsDanglingVertices) {
@@ -134,8 +148,6 @@ public class InputGraph {
         }
         resetStationProcesingState();
         return sortedEdges;
-
-        // TODO sort graph also if it is not connected
     }
 
     private void resetStationProcesingState() {
