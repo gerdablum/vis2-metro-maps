@@ -3,6 +3,10 @@ var map = L.map('map').setView([48.210033, 16.363449], 13);
 var stationMarker = [];
 var gridMarker = [];
 var gridEdges = [];
+var geoLines = [];
+var octiLines = [];
+var gridSize = 0.5;
+var distanceR = 0.77;
 var mapLayer = null;
 var browserControl = null;
 var selectedCity = "vienna";
@@ -22,12 +26,13 @@ var labelOptions = {
     interactive: false
 };
 var invisibleMarkerOptions = {
-    icon: L.divIcon({
+    /*icon: L.divIcon({
         className: 'invisible-marker',
         html: '',
-        iconSize: [1, 1]  // Set the icon size to a very small value
-    }),
-    interactive: false
+        iconSize: [1, 1]
+    }),*/
+    interactive: false,
+    rotationAngle: 45       // this is for rotating blue markers
 };
 var stationMarkerOptions = {
     color: 'black',
@@ -36,12 +41,57 @@ var stationMarkerOptions = {
 };
 debug = false;
 
+$( document ).ready(function() {
+    const removeMapButton = document.getElementById('removeMap-button');
+    removeMapButton.addEventListener('click', removeBackgroundMap);
 
-loadMap();
+    const addMapButton = document.getElementById('addMap-button');
+    addMapButton.addEventListener('click', addMapLayer);
+
+    const showOctiButton = document.getElementById("show-octi-lines-button");
+    showOctiButton.addEventListener('click', refreshMap);
+    const showGeoButton = document.getElementById("show-geo-lines-button");
+    showGeoButton.addEventListener('click', refreshMap)
+    const showLabelButton = document.getElementById("show-labels-button");
+
+
+//toggleButtonState(addMapButton);
+    const dropdownButton = document.getElementById('dropdownMenuButton');
+    const dropdownItems = document.querySelectorAll('.dropdown-item');
+
+    dropdownItems.forEach(function(item) {
+        item.addEventListener('click', async function() {
+            const selectedText = item.textContent;
+            dropdownButton.textContent = selectedText;
+            selectedCity = item.dataset.value;
+            console.log("selected: " + selectedCity);
+            loadMap();
+        });
+    });
+
+    document.getElementById("changeGridCells").addEventListener("click", function() {
+        var gridSizeInput = parseFloat(document.getElementById("gridSize").value);
+        var distanceRInput = parseFloat(document.getElementById("distanceR").value);
+
+        console.log("Grid Size:", gridSizeInput);
+        console.log("Distance:", distanceRInput);
+
+        gridSize = gridSizeInput ? parseFloat(gridSizeInput) : null;
+        distanceR = distanceRInput ? parseFloat(distanceRInput) : null;
+        loadMap();
+    });
+
+    loadMap();
+});
+
+
 function loadMap() {
+    clearMap();
     stationMarker = [];
     gridMarker = [];
     gridEdges = [];
+    geoLines = [];
+    octiLines = [];
     if (mapLayer) {map.removeLayer(mapLayer);}
     var cityData = viewArray[selectedCity];
     if (cityData) { map.setView([cityData.lat, cityData.lon], cityData.zoom); }
@@ -53,27 +103,50 @@ function loadMap() {
         browserControl = L.control.browserPrint(pdfOptions).addTo(map);
     }
     addMapLayer();
-    fetchOctilinear(cityData.name);
-    fetchData(cityData.name);
+    fetchOctilinear(cityData.name, refreshMap);
+    fetchData(cityData.name, refreshMap);
+    map.on("zoomend", function() {
+        zoomEffect();
+    });
+}
+
+function refreshMap() {
+
+    var isOctiChecked = $('#show-octi-lines-button').is(":checked")
+    var isGeoChecked = $('#show-geo-lines-button').is(":checked")
+    if (isOctiChecked) {
+        octiLines.forEach(a => a.addTo(map));
+    } else {
+       octiLines.forEach(a => map.removeLayer(a));
+       gridMarker.forEach(a => map.removeLayer(a));
+    }
+
+    if (isGeoChecked) {
+        geoLines.forEach(a => a.addTo(map));
+    } else {
+        geoLines.forEach(a => map.removeLayer(a));
+        stationMarker.forEach(a => map.removeLayer(a))
+    }
     zoomEffect();
 }
+
 function zoomEffect() {
-    map.on("zoomend", function() {
-        var zoom = map.getZoom();
-        console.log(zoom);
-        if (zoom > 12 && stationMarker != null) {
+    var isOctiChecked = $('#show-octi-lines-button').is(":checked")
+    var zoom = map.getZoom();
+    if (zoom > 12 && stationMarker != null) {
+        if (isOctiChecked) {
             stationMarker.forEach(a => a.addTo(map));
-            gridEdges.forEach(a => a.addTo(map));
             gridMarker.forEach(a => a.addTo(map));
-            console.log("add details!");
         }
-        if (zoom <= 12 && stationMarker != null) {
-            stationMarker.forEach(a => map.removeLayer(a));
-            gridMarker.forEach(a => map.removeLayer(a));
-            gridEdges.forEach(a => map.removeLayer(a));
-            console.log("remove details!");
-        }
-    });
+        gridEdges.forEach(a => a.addTo(map));
+        console.log("add details!");
+    }
+    if (zoom <= 12 && stationMarker != null) {
+        stationMarker.forEach(a => map.removeLayer(a));
+        gridMarker.forEach(a => map.removeLayer(a));
+        gridEdges.forEach(a => map.removeLayer(a));
+        console.log("remove details!");
+    }
 }
 
 /*
@@ -96,21 +169,28 @@ L.control.browserPrint({
 */
 
 
-function fetchOctilinear(cityName) {
-
-    axios.get('/' + cityName + '/octilinear')
+function fetchOctilinear(cityName, callback) {
+    var url = '/' + encodeURIComponent(cityName) + '/octilinear';
+    url += '?gridSize=' + encodeURIComponent(gridSize);
+    url += '&distanceR=' + encodeURIComponent(distanceR);
+    axios.get(url)
         .then(function (response) {
             gridEdges = [];
             gridNode = [];
-            for (var edge of response.data) {
-                for(var points of edge) {
-                     var text = points.bendCost;
-                     L.polyline([points.source.coordinates,
-                     points.destination.coordinates], {color: 'red'}).bindTooltip(text).openTooltip().addTo(map);
-                }
+            for (let edge of response.data) {
+                for(let points of edge) {
+                     let text = points.bendCost;
+                     let colors = points.colors;
+                    for (let i = 0; i < colors.length; i++) {
+                        let polyline = L.polyline([points.source.coordinates,
+                            points.destination.coordinates], {color: '#' + colors[i]}).bindTooltip(text).openTooltip();
+                        polyline.setOffset(i*3);
+                        octiLines.push(polyline)
+                    }
 
+                }
             }
-            fetchGrid(cityName)
+            fetchGrid(cityName, callback)
         })
         .catch(function (error) {
                 // handle error
@@ -118,7 +198,7 @@ function fetchOctilinear(cityName) {
               })
 }
 
-function fetchGrid(cityName) {
+function fetchGrid(cityName, callback) {
     axios.get('/' + cityName + '/gridgraph')          // ' + selectedCity + '
         .then(function (response) {
             console.log('URL:', response.config.url);
@@ -140,16 +220,18 @@ function fetchGrid(cityName) {
                     var customTooltip = L.tooltip(labelOptions);
                     customTooltip.setContent(gridNode.stationName);
                     gridMarker.push(L.marker(gridNode.labelCoordinates, invisibleMarkerOptions).bindTooltip(customTooltip).openTooltip());
+
                     if (gridNode.stationName === "Stephansplatz" || gridNode.stationName === "Karlsplatz" || gridNode.stationName === "Taubstummengasse") {
                         //gridMarker.push(invisibleMarker);
                         //gridMarker.push(L.circleMarker(gridNode.coordinates, color).bindTooltip(customTooltip).openTooltip());
                         //gridMarker.push(L.circleMarker(gridNode.labelCoordinates, color).bindTooltip(customTooltip).openTooltip());
                     }
                 }
-                else if (debug) {               // DEBUG
+                if (debug) {               // DEBUG
                     color =  {color: 'blue'}
                     gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(text).openTooltip());
                 }
+                callback();
             }
             /*
             for (var stationLabel of response.data.stationLabelling) {
@@ -180,85 +262,33 @@ function fetchGrid(cityName) {
         })
 }
 
-function fetchData(cityName) {
+function fetchData(cityName, callback) {
     console.log(cityName);
-    axios.get('/' + cityName + '/stations')
-      .then(function (response) {
+    axios.all([
+        axios.get('/' + cityName + '/stations'),
+        axios.get('/' + cityName + '/lines')
+    ]).then(function (response) {
         // handle success
         stationMarker = [];
         if (debug) {
-            for (var node of response.data) {
+            for (var node of response[0].data) {
                 var text = node.name + " " + node.coordinates;
                 stationMarker.push(L.marker(node.coordinates).bindTooltip(text).openTooltip());
             }
         }
-      })
-      .catch(function (error) {
-        // handle error
-        console.log(error);
-      })
-  axios.get('/' + cityName + '/lines?lineId=1')
-       .then(function (response) {
-         // handle success
-         for (var node of response.data) {
-             console.log(node)
-             var polyline = L.polyline(node.coordinates, {color: 'red'}).addTo(map);
-         }
-       })
-       .catch(function (error) {
-         // handle error
-         console.log(error);
-       })
-  axios.get('/' + cityName + '/lines?lineId=2')
-      .then(function (response) {
-        // handle success
-        for (var node of response.data) {
-            console.log(node)
-            var polyline = L.polyline(node.coordinates, {color: 'purple'}).addTo(map);
-        }
-      })
-      .catch(function (error) {
-        // handle error
-        console.log(error);
-      })
-   axios.get('/' + cityName + '/lines?lineId=3')
-         .then(function (response) {
-            // handle success
-            for (var node of response.data) {
-                console.log(node)
-                var polyline = L.polyline(node.coordinates, {color: 'orange'}).addTo(map);
+        for (const node of response[1].data) {
+            for (const line of node.lines) {
+                let color = '#' + line.color;
+                var polyline = L.polyline(node.coordinates, {color: color});
+                geoLines.push(polyline)
             }
-          })
-          .catch(function (error) {
-            // handle error
-            console.log(error);
-          })
-  axios.get('/' + cityName + '/lines?lineId=4')
-           .then(function (response) {
-              // handle success
-              for (var node of response.data) {
-                  console.log(node)
-                  var polyline = L.polyline(node.coordinates, {color: 'green'}).addTo(map);
-              }
-            })
-            .catch(function (error) {
-              // handle error
-              console.log(error);
-            })
-  axios.get('/' + cityName + '/lines?lineId=6')
-              .then(function (response) {
-                 // handle success
-                 for (var node of response.data) {
-                     console.log(node)
-                     var polyline = L.polyline(node.coordinates, {color: 'brown'}).addTo(map);
-                 }
-               })
-               .catch(function (error) {
-                 // handle error
-                 console.log(error);
-               })
-
-
+        }
+        callback();
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      })
 }
 //window.jsPDF = window.jspdf.jsPDF;
 /*
@@ -295,6 +325,21 @@ function exportMapToPDF() {
     });
 }*/
 
+function clearMap() {
+    stationMarker.forEach(marker => map.removeLayer(marker));
+    gridMarker.forEach(marker => map.removeLayer(marker));
+    gridEdges.forEach(edge => map.removeLayer(edge));
+    map.eachLayer(layer => {
+        if (layer instanceof L.Polyline) {
+            map.removeLayer(layer);
+        }
+    });
+    if (mapLayer) {
+        map.removeLayer(mapLayer);
+        mapLayer = null;
+    }
+}
+
 function toggleButtonState(button) {
     var buttons = document.querySelectorAll('.btn-group-toggle .btn');
     buttons.forEach(function(btn) {
@@ -326,25 +371,4 @@ function removeBackgroundMap() {
     btn = document.getElementById('removeMap-button');
     toggleButtonState(btn);
 }
-
-const removeMapButton = document.getElementById('removeMap-button');
-removeMapButton.addEventListener('click', removeBackgroundMap);
-
-const addMapButton = document.getElementById('addMap-button');
-addMapButton.addEventListener('click', addMapLayer);
-
-//toggleButtonState(addMapButton);
-
-const dropdownButton = document.getElementById('dropdownMenuButton');
-const dropdownItems = document.querySelectorAll('.dropdown-item');
-
-dropdownItems.forEach(function(item) {
-    item.addEventListener('click', async function() {
-        const selectedText = item.textContent;
-        dropdownButton.textContent = selectedText;
-        selectedCity = item.dataset.value;
-        console.log("selected: " + selectedCity);
-        loadMap();
-    });
-});
 

@@ -2,6 +2,7 @@ package at.tuwien.vis2.metromaps.api.paper;
 
 import at.tuwien.vis2.metromaps.model.MetroDataProvider;
 import at.tuwien.vis2.metromaps.model.Utils;
+import at.tuwien.vis2.metromaps.model.input.InputLine;
 import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
 import at.tuwien.vis2.metromaps.model.input.InputStation;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,15 +62,16 @@ public class PaperMetroDataService implements MetroDataProvider {
 
                 wrapper.allInputLineEdges = new HashMap<>();
                 for (PaperFeatures.Feature line : wrapper.allLines) {
-                    List<String> lineNames = line.getProperties().getLines().stream().map(l -> l.getLabel()).collect(Collectors.toList());
+                    List<PaperFeatures.Line> lines = line.getProperties().getLines();
+                    List<InputLine> inputLine = lines.stream().map(l -> new InputLine(l.getLabel(), l.getColor())).collect(Collectors.toList());
                     String from = line.getProperties().getFrom();
                     String to = line.getProperties().getTo();
-                    wrapper.allInputStations.get(from).addLineNames(lineNames);
-                    wrapper.allInputStations.get(to).addLineNames(lineNames);
+                    wrapper.allInputStations.get(from).addLines(inputLine);
+                    wrapper.allInputStations.get(to).addLines(inputLine);
                     InputStation startStation = wrapper.allInputStations.get(from);
                     InputStation endStations = wrapper.allInputStations.get(to);
                     InputLineEdge lineEdge = new InputLineEdge(line.getProperties().getId(), startStation, endStations,
-                            line.getCoordinates(), lineNames);
+                            line.getCoordinates(), inputLine);
                     wrapper.allInputLineEdges.put(lineEdge.getId(), lineEdge);
                 }
 
@@ -105,9 +107,10 @@ public class PaperMetroDataService implements MetroDataProvider {
         Collection<InputLineEdge> lineEdges = wrapper.allInputLineEdges.values();
         List<InputLineEdge> outputList = new ArrayList<>();
         for (InputLineEdge edge:  lineEdges) {
-            if (edge.getLineNames().contains(lineId)) {
-                outputList.add(edge);
-            }
+            for (InputLine lineNames : edge.getLines())
+                if (lineNames.getName().contains(lineId)) {
+                    outputList.add(edge);
+                }
         }
         return outputList;
     }
@@ -117,7 +120,7 @@ public class PaperMetroDataService implements MetroDataProvider {
         List<InputLineEdge> allGeograficEdges = getAllGeograficEdges(city);
         Set<String> lineNames = new HashSet<>();
         for (InputLineEdge edge: allGeograficEdges) {
-            lineNames.addAll(edge.getLineNames());
+            lineNames.addAll(edge.getLines().stream().map(InputLine::getName).toList());
         }
         return lineNames.stream().toList();
     }
@@ -132,8 +135,72 @@ public class PaperMetroDataService implements MetroDataProvider {
             orderedEdges.addAll(semiOrderedEdges);
 
         }
-
+        Map<String, InputStation> merged = new HashMap<>(resources.get(city).mergedStations);
+        removeWeirdStations(orderedEdges, merged);
+        resources.get(city).mergedStations = merged;
+        orderedEdges = removeDuplicates(orderedEdges);
         return orderedEdges;
+    }
+
+    private LinkedList<InputLineEdge> removeDuplicates(LinkedList<InputLineEdge> orderedEdges) {
+        LinkedList<InputLineEdge> edges = new LinkedList<>(orderedEdges);
+        for (InputLineEdge edge: orderedEdges) {
+            if (edge.getStartStation().equals(edge.getEndStation())) {
+                edges.remove(edge);
+            }
+        }
+        return edges;
+    }
+
+    private void removeWeirdStations(LinkedList<InputLineEdge> orderedEdges, Map<String, InputStation> mergedStations) {
+        updateEdgeList(orderedEdges, mergedStations);
+        if (isWeirdNode(orderedEdges.getFirst().getStartStation())) {
+            String weirdNodeName = orderedEdges.getFirst().getStartStation().getName();
+            InputStation mergedInto = orderedEdges.getFirst().getEndStation();
+            mergedStations.put(weirdNodeName, mergedInto);
+            orderedEdges.removeFirst();
+            updateEdgeList(orderedEdges, mergedStations);
+        }
+
+        if(isWeirdNode(orderedEdges.getLast().getEndStation())) {
+            String weirdNodeName = orderedEdges.getLast().getEndStation().getName();
+            InputStation mergedInto = orderedEdges.getLast().getStartStation();
+            mergedStations.put(weirdNodeName, mergedInto);
+            orderedEdges.removeLast();
+            updateEdgeList(orderedEdges, mergedStations);
+        }
+        for (int i = 0; i < orderedEdges.size() - 1; i++) {
+            InputLineEdge edge = orderedEdges.get(i);
+            InputLineEdge nextEdge = orderedEdges.get(i+1);
+
+            if (isWeirdNode(edge.getEndStation()) && edge.getEndStation().equals(nextEdge.getStartStation())) {
+                String weirdNodeName = edge.getEndStation().getName();
+                InputStation mergedInto = nextEdge.getEndStation();
+                mergedStations.put(weirdNodeName, mergedInto);
+                edge.setEndStation(nextEdge.getEndStation());
+                orderedEdges.remove(nextEdge);
+                updateEdgeList(orderedEdges, mergedStations);
+            }
+        }
+    }
+
+    private static void updateEdgeList(LinkedList<InputLineEdge> orderedEdges, Map<String, InputStation> mergedStations) {
+        orderedEdges.forEach(edge -> {
+            InputStation start = edge.getStartStation();
+            InputStation end = edge.getEndStation();
+            InputStation mergedStart = mergedStations.get(start.getName());
+            InputStation mergedEnd = mergedStations.get(end.getName());
+            if (mergedStart != null) {
+                edge.setStartStation(mergedStart);
+            }
+            if (mergedEnd != null) {
+                edge.setEndStation(mergedEnd);
+            }
+        });
+    }
+
+    private boolean isWeirdNode(InputStation station) {
+        return station.getName().equals(station.getId());
     }
 
     private void orderEdges(List<InputLineEdge> allGeograficEdgesForLine, LinkedList<InputLineEdge> orderedEdges, String lineId) {

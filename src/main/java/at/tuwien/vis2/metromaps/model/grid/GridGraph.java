@@ -1,11 +1,10 @@
 package at.tuwien.vis2.metromaps.model.grid;
 
+import at.tuwien.vis2.metromaps.model.input.InputLine;
 import at.tuwien.vis2.metromaps.model.input.InputLineEdge;
 import at.tuwien.vis2.metromaps.model.input.InputStation;
 import at.tuwien.vis2.metromaps.model.Utils;
 import org.jgrapht.Graph;
-import org.jgrapht.GraphPath;
-import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.builder.GraphTypeBuilder;
 import org.jgrapht.traverse.DepthFirstIterator;
 import org.slf4j.Logger;
@@ -17,8 +16,8 @@ import java.util.stream.Collectors;
 public class GridGraph {
 
     private final Graph<GridVertex, GridEdge> gridGraph;
-    private double d = 0.5; // threshold (in km) we would like to have between each grid cell
-    private double r = 0.77; // distance between source and target candidates to match input edges onto grid
+    private double d = 0.5; // GRID SIZE: threshold (in km) we would like to have between each grid cell
+    private double r = 0.77; // DISTANCE: distance between source and target candidates to match input edges onto grid
     private double costM = 0.5;  // move penalty
     private double costH = 1; // hop cost of using a grid edge
     private int numberOfVerticesHorizontal;
@@ -31,7 +30,9 @@ public class GridGraph {
     public Set<GridVertex> sourceCandidates = new HashSet<>();
     public Set<GridVertex> targetCandidates = new HashSet<>();
 
-    public GridGraph(double widthInputGraph, double heightInputGraph, double[] leftUpper, double[] leftLower, double[] rightUpper) {
+    public GridGraph(double widthInputGraph, double heightInputGraph, double[] leftUpper, double[] leftLower, double[] rightUpper, double dinput, double rinput) {
+        d = dinput;
+        r = rinput;
 
         calcSizeOfGridGraph(widthInputGraph, heightInputGraph);
 
@@ -102,7 +103,8 @@ public class GridGraph {
         numberOfVerticesVertical = (int) Math.ceil(heightInputGraph / d);
     }
 
-    public ShortestPath processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph, String lineName) {
+    public ShortestPath processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph) {
+        String lineName = edgeFromInputGraph.getLines().get(0).getName();
         if (sourceFromInputGraph.getName().equals("Seestadt") || targetFromInputGraph.getName().equals("Aspern Nord")) {
             int a = 1;
         }
@@ -141,13 +143,8 @@ public class GridGraph {
 
         searchCandidatesAndCalculateOffsetcosts(allGridVertices, sourceFromInputGraph, targetFromInputGraph);
 
-//        if (sourceIsFixed) {
-//            // our source is already routed in the path. So we reset the offset costs from all other source candidates
-//            // (offset cost must not influence routing in this case!)
-//            sourceCandidates.forEach(v -> UpdateGridGraphCost(gridGraph.outgoingEdgesOf(v), 1));
-//        } else if (targetIsFixed) {
-//            targetCandidates.forEach(v -> UpdateGridGraphCost(gridGraph.outgoingEdgesOf(v), 1));
-//        }
+        filterCandidates(sourceCandidates, sourceFromInputGraph.getName());
+        filterCandidates(targetCandidates, targetFromInputGraph.getName());
 
         ShortestPath shortestPath = getShortestPathBetweenTwoSets((sourceCandidates), (targetCandidates), previouslyUsedEdge);
         if (shortestPath == null) {
@@ -155,7 +152,7 @@ public class GridGraph {
         }
         // set already used edges to inf and mark grid edge as taken
         shortestPath.getEdgeList().forEach(gridEdge -> {
-            gridEdge.setTaken(edgeFromInputGraph.getLineNames(), lineName);
+            gridEdge.setTaken(edgeFromInputGraph.getLines(), lineName);
             gridEdge.setCostsInf();
             gridGraph.setEdgeWeight(gridEdge, gridEdge.getCosts());
         });
@@ -163,12 +160,12 @@ public class GridGraph {
         List<GridVertex> vertexList = shortestPath.getVertexList();
         vertexList.remove(shortestPath.getEndVertex());
         for (GridVertex vertex : vertexList) {
-            vertex.setTakenLineNames(sourceFromInputGraph.getLineNames(), lineName);
+            vertex.setTakenLineNames(sourceFromInputGraph.getLine(), lineName);
             // do not allow loops
             gridGraph.outgoingEdgesOf(vertex).forEach(v -> v.setCostsInf());
         }
         vertexList.add(shortestPath.getEndVertex());
-        shortestPath.getEndVertex().setTakenLineNames(targetFromInputGraph.getLineNames(), lineName);
+        shortestPath.getEndVertex().setTakenLineNames(targetFromInputGraph.getLine(), lineName);
 
         currentLineName = lineName;
         previouslyUsedEdge = shortestPath.getEdgeList().get(shortestPath.getEdgeList().size() -1);
@@ -178,9 +175,19 @@ public class GridGraph {
         shortestPath.getStartVertex().setTakenWith(sourceFromInputGraph.getName());
         shortestPath.getEndVertex().setTakenWith(targetFromInputGraph.getName());
 
-        // TODO all bend edges (edges in between ingoing and outgoing path of a vertex - smaller angle) have cost inf
+        setColors(shortestPath.getEdgeList(), edgeFromInputGraph);
 
         return shortestPath;
+    }
+
+    private void filterCandidates(Set<GridVertex> candidates, String inputStationName) {
+
+        Set<GridVertex> cands = new HashSet<>(candidates);
+        cands.forEach(v -> {
+            if (v.getStationName() != null && !v.getStationName().equals(inputStationName)) {
+                candidates.remove(v);
+            }
+        });
     }
 
     private GridVertex findAlreadyRoutedGridVertex(Set<GridVertex> gridVertices, String name) {
@@ -223,6 +230,13 @@ public class GridGraph {
                     UpdateGridGraphCost(edgesCandidates, offsetcosts);
                 }
             }
+        }
+    }
+
+    private void setColors(List<GridEdge> gridEdges, InputLineEdge inputEdge) {
+        for (GridEdge edge: gridEdges) {
+            List<String> colors = inputEdge.getLines().stream().map(InputLine::getColor).toList();
+            edge.setColors(colors);
         }
     }
 
@@ -393,9 +407,7 @@ public class GridGraph {
         vertices.forEach(v -> {
             Set<GridEdge> gridEdges = gridGraph.outgoingEdgesOf(v);
             gridEdges.forEach( g -> {
-                if (!g.isTaken()) {
-                    g.resetCosts();
-                } else if (g.isClosedForLine(lineName)) {
+               if (g.isClosedForLine(lineName)) {
                     g.resetCosts();
                 }
             });
@@ -415,5 +427,12 @@ public class GridGraph {
                 adjacentEdges.forEach(e -> e.resetCosts());
             }
         });
+    }
+
+    public boolean checkGridParameters(double gridSize, double distanceR) {
+        if(gridSize == r && distanceR == d) {
+            return true;
+        }
+        return false;
     }
 }

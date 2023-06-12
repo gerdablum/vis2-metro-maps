@@ -91,7 +91,7 @@ public class InputGraph {
         Set<InputLineEdge> edges = inputGraph.incomingEdgesOf(station);
         int ldeg = 0;
         for (InputLineEdge e: edges) {
-            ldeg += e.getLineNames().size();
+            ldeg += e.getLines().size();
         }
         return ldeg;
     }

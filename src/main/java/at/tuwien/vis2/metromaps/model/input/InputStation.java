@@ -15,10 +15,10 @@ public class InputStation {
     private String name;
     private String id;
     private double[] coordinates;
-    private List<String> lineNames;
+    private List<InputLine> line;
     private ProcessingState processingState;
 
-    public InputStation(String name, String id, double[] coordinates, List<String> lineNames) {
+    public InputStation(String name, String id, double[] coordinates, List<InputLine> line) {
         if (name == null) {
             this.name = id;
         } else {
@@ -26,7 +26,7 @@ public class InputStation {
         }
         this.id = id;
         this.coordinates = coordinates;
-        this.lineNames = lineNames;
+        this.line = line;
         this.processingState = ProcessingState.UNPROCESSED;
     }
 
@@ -42,8 +42,8 @@ public class InputStation {
         return coordinates;
     }
 
-    public List<String> getLineNames() {
-        return lineNames;
+    public List<InputLine> getLine() {
+        return line;
     }
 
     public ProcessingState getProcessingState() {
@@ -89,13 +89,13 @@ public class InputStation {
         return this.name + " (" + this.getId() + ")";
     }
 
-    public void addLineNames(List<String> lineNames) {
-        if (this.lineNames == null) {
-            this.lineNames = new ArrayList<>(lineNames);
+    public void addLines(List<InputLine> lines) {
+        if (this.line == null) {
+            this.line = new ArrayList<>(lines);
         }
-        for (String line: lineNames) {
-            if (!this.lineNames.contains(line)) {
-                this.lineNames.add(line);
+        for (InputLine line: lines) {
+            if (!this.line.contains(line)) {
+                this.line.add(line);
             }
         }
 

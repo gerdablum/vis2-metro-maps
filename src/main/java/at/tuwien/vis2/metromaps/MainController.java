@@ -48,8 +48,6 @@ public class MainController {
         }
     }
 
-
-
     @GetMapping("/{city}/gridgraph")
     public GridGraph getGridGraph(@PathVariable String city) {
         sanityCheckCity(city);
@@ -57,19 +55,24 @@ public class MainController {
     }
 
     @GetMapping("/{city}/octilinear")
-    public List<List<GridEdge>> getOctilinearGraph(@PathVariable String city) {
+    public List<List<GridEdge>> getOctilinearGraph(@PathVariable String city, @RequestParam(required = false) double gridSize, @RequestParam(required = false) double distanceR) {
         sanityCheckCity(city);
-        return octalinearGraphCalculator.calculateOutputGraph(city);
+        sanityCheckGridParameter(gridSize);
+        sanityCheckGridParameter(distanceR);
 
+        return octalinearGraphCalculator.calculateOutputGraph(city, gridSize, distanceR);
     }
 
     private void sanityCheckCity(String city) {
         if (!Utils.allCities.contains(city)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("City name %s is unknown", city));
         }
-
     }
-
+    private void sanityCheckGridParameter(Object gridParameter) {
+        if (!(gridParameter instanceof Double)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Ungültiger Parameter: %s. Der Parameter muss vom Typ double sein.", gridParameter));
+        }
+    }
     private void sanityCheckLine(String lineId, String city) {
         List<String> allLineNames = metroDataProvider.getAllLineNames(city);
         if (!allLineNames.contains(lineId)) {
