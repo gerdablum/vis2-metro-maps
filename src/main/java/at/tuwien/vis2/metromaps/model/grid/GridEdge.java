@@ -108,7 +108,15 @@ public class GridEdge {
     }
 
     public void setColors(List<String> colors) {
-        this.colors = colors;
+        if (this.colors == null) {
+            this.colors = new ArrayList<>(colors);
+        } else {
+            for (String color : colors) {
+                if (!this.colors.contains(color)) {
+                    this.colors.add(color);
+                }
+            }
+        }
     }
 
     @Override

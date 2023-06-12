@@ -142,13 +142,8 @@ public class GridGraph {
 
         searchCandidatesAndCalculateOffsetcosts(allGridVertices, sourceFromInputGraph, targetFromInputGraph);
 
-//        if (sourceIsFixed) {
-//            // our source is already routed in the path. So we reset the offset costs from all other source candidates
-//            // (offset cost must not influence routing in this case!)
-//            sourceCandidates.forEach(v -> UpdateGridGraphCost(gridGraph.outgoingEdgesOf(v), 1));
-//        } else if (targetIsFixed) {
-//            targetCandidates.forEach(v -> UpdateGridGraphCost(gridGraph.outgoingEdgesOf(v), 1));
-//        }
+        filterCandidates(sourceCandidates, sourceFromInputGraph.getName());
+        filterCandidates(targetCandidates, targetFromInputGraph.getName());
 
         ShortestPath shortestPath = getShortestPathBetweenTwoSets((sourceCandidates), (targetCandidates), previouslyUsedEdge);
         if (shortestPath == null) {
@@ -182,6 +177,16 @@ public class GridGraph {
         setColors(shortestPath.getEdgeList(), edgeFromInputGraph);
 
         return shortestPath;
+    }
+
+    private void filterCandidates(Set<GridVertex> candidates, String inputStationName) {
+
+        Set<GridVertex> cands = new HashSet<>(candidates);
+        cands.forEach(v -> {
+            if (v.getStationName() != null && !v.getStationName().equals(inputStationName)) {
+                candidates.remove(v);
+            }
+        });
     }
 
     private GridVertex findAlreadyRoutedGridVertex(Set<GridVertex> gridVertices, String name) {
