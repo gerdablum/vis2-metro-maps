@@ -45,10 +45,12 @@ margin: 0 auto;
     border: 0px solid #000;
     color: #000;
     white-space: nowrap;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
     pointer-events: none;
     box-shadow: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+
+    transform: rotate(45deg) !important;
 }

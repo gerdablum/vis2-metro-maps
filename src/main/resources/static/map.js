@@ -5,6 +5,8 @@ var gridMarker = [];
 var gridEdges = [];
 var geoLines = [];
 var octiLines = [];
+var gridSize = 0.5;
+var distanceR = 0.77;
 var mapLayer = null;
 var browserControl = null;
 var selectedCity = "vienna";
@@ -24,12 +26,13 @@ var labelOptions = {
     interactive: false
 };
 var invisibleMarkerOptions = {
-    icon: L.divIcon({
+    /*icon: L.divIcon({
         className: 'invisible-marker',
         html: '',
-        iconSize: [1, 1]  // Set the icon size to a very small value
-    }),
-    interactive: false
+        iconSize: [1, 1]
+    }),*/
+    interactive: false,
+    rotationAngle: 45       // this is for rotating blue markers
 };
 var stationMarkerOptions = {
     color: 'black',
@@ -66,12 +69,24 @@ $( document ).ready(function() {
         });
     });
 
+    document.getElementById("changeGridCells").addEventListener("click", function() {
+        var gridSizeInput = parseFloat(document.getElementById("gridSize").value);
+        var distanceRInput = parseFloat(document.getElementById("distanceR").value);
+
+        console.log("Grid Size:", gridSizeInput);
+        console.log("Distance:", distanceRInput);
+
+        gridSize = gridSizeInput ? parseFloat(gridSizeInput) : null;
+        distanceR = distanceRInput ? parseFloat(distanceRInput) : null;
+        loadMap();
+    });
 
     loadMap();
 });
 
 
 function loadMap() {
+    clearMap();
     stationMarker = [];
     gridMarker = [];
     gridEdges = [];
@@ -87,8 +102,6 @@ function loadMap() {
     if (!browserControl) {
         browserControl = L.control.browserPrint(pdfOptions).addTo(map);
     }
-
-
     addMapLayer();
     fetchOctilinear(cityData.name, refreshMap);
     fetchData(cityData.name, refreshMap);
@@ -115,7 +128,6 @@ function refreshMap() {
         stationMarker.forEach(a => map.removeLayer(a))
     }
     zoomEffect();
-
 }
 
 function zoomEffect() {
@@ -136,7 +148,6 @@ function zoomEffect() {
         console.log("remove details!");
     }
 }
-
 
 /*
 var saveAsImage = function () {
@@ -159,8 +170,10 @@ L.control.browserPrint({
 
 
 function fetchOctilinear(cityName, callback) {
-
-    axios.get('/' + cityName + '/octilinear')
+    var url = '/' + encodeURIComponent(cityName) + '/octilinear';
+    url += '?gridSize=' + encodeURIComponent(gridSize);
+    url += '&distanceR=' + encodeURIComponent(distanceR);
+    axios.get(url)
         .then(function (response) {
             gridEdges = [];
             gridNode = [];
@@ -176,7 +189,6 @@ function fetchOctilinear(cityName, callback) {
                     }
 
                 }
-
             }
             fetchGrid(cityName, callback)
         })
@@ -208,13 +220,14 @@ function fetchGrid(cityName, callback) {
                     var customTooltip = L.tooltip(labelOptions);
                     customTooltip.setContent(gridNode.stationName);
                     gridMarker.push(L.marker(gridNode.labelCoordinates, invisibleMarkerOptions).bindTooltip(customTooltip).openTooltip());
+
                     if (gridNode.stationName === "Stephansplatz" || gridNode.stationName === "Karlsplatz" || gridNode.stationName === "Taubstummengasse") {
                         //gridMarker.push(invisibleMarker);
                         //gridMarker.push(L.circleMarker(gridNode.coordinates, color).bindTooltip(customTooltip).openTooltip());
                         //gridMarker.push(L.circleMarker(gridNode.labelCoordinates, color).bindTooltip(customTooltip).openTooltip());
                     }
                 }
-                else if (debug) {               // DEBUG
+                if (debug) {               // DEBUG
                     color =  {color: 'blue'}
                     gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(text).openTooltip());
                 }
@@ -312,6 +325,21 @@ function exportMapToPDF() {
     });
 }*/
 
+function clearMap() {
+    stationMarker.forEach(marker => map.removeLayer(marker));
+    gridMarker.forEach(marker => map.removeLayer(marker));
+    gridEdges.forEach(edge => map.removeLayer(edge));
+    map.eachLayer(layer => {
+        if (layer instanceof L.Polyline) {
+            map.removeLayer(layer);
+        }
+    });
+    if (mapLayer) {
+        map.removeLayer(mapLayer);
+        mapLayer = null;
+    }
+}
+
 function toggleButtonState(button) {
     var buttons = document.querySelectorAll('.btn-group-toggle .btn');
     buttons.forEach(function(btn) {
@@ -343,5 +371,4 @@ function removeBackgroundMap() {
     btn = document.getElementById('removeMap-button');
     toggleButtonState(btn);
 }
-
 

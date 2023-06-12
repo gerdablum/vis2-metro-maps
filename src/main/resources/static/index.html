@@ -25,19 +25,18 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="./style/style.css"/>
 
+    <script src="./js/leaflet.rotatedMarker.js"></script>
+
+
 </head>
 <body>
 <h1>Hello World of metro maps!!</h1>
-
-
-
-
 <div id="map"></div>
 
 <div id="buttonContainer">
-    Grid cell (width/height in km): <input id="gridCellD" type="number" min="0" step="0.1" value="0.5">
-    Distance node to true location: <input id="distanceR" type="number" min="0" step="0.1" value="0.77">
-
+    Grid cell (width/height in km): <input id="gridSize" type="number" min="0" step="0.1" value="0.5">
+    Distance (node to true location): <input id="distanceR" type="number" min="0" step="0.1" value="0.77">
+    <button class="btn btn-secondary" type="button" id="changeGridCells">Change grid</button>
     <div class="dropdown">
         <button id="dropdownMenuButton" class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             Choose a city!
