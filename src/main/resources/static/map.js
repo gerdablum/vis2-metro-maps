@@ -5,6 +5,7 @@ var gridMarker = [];
 var gridEdges = [];
 var geoLines = [];
 var octiLines = [];
+var labels = [];
 var gridSize = 0.5;
 var distanceR = 0.77;
 var mapLayer = null;
@@ -25,15 +26,7 @@ var labelOptions = {
     opacity: 1,
     interactive: false
 };
-var invisibleMarkerOptions = {
-    /*icon: L.divIcon({
-        className: 'invisible-marker',
-        html: '',
-        iconSize: [1, 1]
-    }),*/
-    interactive: false,
-    rotationAngle: 45       // this is for rotating blue markers
-};
+
 var stationMarkerOptions = {
     color: 'black',
     fillColor: 'white',
@@ -53,7 +46,7 @@ $( document ).ready(function() {
     const showGeoButton = document.getElementById("show-geo-lines-button");
     showGeoButton.addEventListener('click', refreshMap)
     const showLabelButton = document.getElementById("show-labels-button");
-
+    showLabelButton.addEventListener('click', refreshMap)
 
 //toggleButtonState(addMapButton);
     const dropdownButton = document.getElementById('dropdownMenuButton');
@@ -88,6 +81,7 @@ $( document ).ready(function() {
 function loadMap() {
     clearMap();
     stationMarker = [];
+    labels = [];
     gridMarker = [];
     gridEdges = [];
     geoLines = [];
@@ -112,34 +106,42 @@ function loadMap() {
 
 function refreshMap() {
 
-    var isOctiChecked = $('#show-octi-lines-button').is(":checked")
-    var isGeoChecked = $('#show-geo-lines-button').is(":checked")
+    var isOctiChecked = $('#show-octi-lines-button').is(':checked');
+    var isGeoChecked = $('#show-geo-lines-button').is(':checked');
+    var isLabelChecked = $('#show-labels-button').is(':checked');
     if (isOctiChecked) {
         octiLines.forEach(a => a.addTo(map));
     } else {
        octiLines.forEach(a => map.removeLayer(a));
        gridMarker.forEach(a => map.removeLayer(a));
+       labels.forEach(a => map.removeLayer(a));
     }
 
     if (isGeoChecked) {
         geoLines.forEach(a => a.addTo(map));
     } else {
         geoLines.forEach(a => map.removeLayer(a));
-        stationMarker.forEach(a => map.removeLayer(a))
     }
     zoomEffect();
 }
 
 function zoomEffect() {
     var isOctiChecked = $('#show-octi-lines-button').is(":checked")
+    var isLabelChecked = $('#show-labels-button').is(':checked');
     var zoom = map.getZoom();
     if (zoom > 12 && stationMarker != null) {
         if (isOctiChecked) {
-            stationMarker.forEach(a => a.addTo(map));
+            //stationMarker.forEach(a => a.addTo(map));
+            if (zoom > 14 && isLabelChecked) {
+                labels.forEach(a => a.addTo(map));
+            }
             gridMarker.forEach(a => a.addTo(map));
         }
         gridEdges.forEach(a => a.addTo(map));
         console.log("add details!");
+    }
+    if (zoom <= 14) {
+        labels.forEach(a => map.removeLayer(a));
     }
     if (zoom <= 12 && stationMarker != null) {
         stationMarker.forEach(a => map.removeLayer(a));
@@ -148,25 +150,6 @@ function zoomEffect() {
         console.log("remove details!");
     }
 }
-
-/*
-var saveAsImage = function () {
-    return domtoimage.toPng(document.body)
-        .then(function (dataUrl) {
-            var link = document.createElement('a');
-            link.download = map.printControl.options.documentTitle || "exportedMap" + '.png';
-            link.href = dataUrl;
-            link.click();
-        });
-};
-L.control.browserPrint({
-    documentTitle: "printImage",
-    printModes: [
-        L.BrowserPrint.Mode.Auto("Download PNG"),
-    ],
-    printFunction: saveAsImage
-}).addTo(map);
-*/
 
 
 function fetchOctilinear(cityName, callback) {
@@ -177,13 +160,13 @@ function fetchOctilinear(cityName, callback) {
         .then(function (response) {
             gridEdges = [];
             gridNode = [];
+            const colorLineMap = new Map();
             for (let edge of response.data) {
                 for(let points of edge) {
-                     let text = points.bendCost;
                      let colors = points.colors;
                     for (let i = 0; i < colors.length; i++) {
                         let polyline = L.polyline([points.source.coordinates,
-                            points.destination.coordinates], {color: '#' + colors[i]}).bindTooltip(text).openTooltip();
+                            points.destination.coordinates], {color: '#' + colors[i]});
                         polyline.setOffset(i*3);
                         octiLines.push(polyline)
                     }
@@ -203,7 +186,6 @@ function fetchGrid(cityName, callback) {
         .then(function (response) {
             console.log('URL:', response.config.url);
             gridEdges = [];
-            gridNode = [];
             if (debug) {
                 for (var gridEdge of response.data.edges) {
                     var text = gridEdge.bendCost;
@@ -213,7 +195,6 @@ function fetchGrid(cityName, callback) {
             }
             for (var gridNode of response.data.gridVertices) {
                 var text = gridNode.name + ", " + gridNode.stationName + ", " + gridNode.coordinates[0] + gridNode.coordinates[1];
-                //var color =  {color: 'red'}
                 if (gridNode.stationName !== null) {
                     gridMarker.push(L.circleMarker(gridNode.coordinates,stationMarkerOptions).bindTooltip(text).openTooltip());
                     var rotation = gridNode.labelRotation;
@@ -221,13 +202,7 @@ function fetchGrid(cityName, callback) {
 
                     var customTooltip = L.tooltip(labelOptions);
                     customTooltip.setContent(gridNode.stationName);
-                    gridMarker.push(L.marker(gridNode.labelCoordinates, {icon: myIcon}));
-
-                    if (gridNode.stationName === "Stephansplatz" || gridNode.stationName === "Karlsplatz" || gridNode.stationName === "Taubstummengasse") {
-                        //gridMarker.push(invisibleMarker);
-                        //gridMarker.push(L.circleMarker(gridNode.coordinates, color).bindTooltip(customTooltip).openTooltip());
-                        //gridMarker.push(L.circleMarker(gridNode.labelCoordinates, color).bindTooltip(customTooltip).openTooltip());
-                    }
+                    labels.push(L.marker(gridNode.labelCoordinates, {icon: myIcon}));
                 }
                 if (debug) {               // DEBUG
                     color =  {color: 'blue'}
@@ -235,28 +210,6 @@ function fetchGrid(cityName, callback) {
                 }
                 callback();
             }
-            /*
-            for (var stationLabel of response.data.stationLabelling) {
-                var text = gridNode.name + ", " + gridNode.stationName + ", " + gridNode.coordinates[0] + gridNode.coordinates[1];
-                var color =  {color: 'blue'}
-                if (gridNode.stationName !== null) {
-                    color =  {color: 'red'}
-                }
-                gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(text).openTooltip());
-                if (gridNode.stationName === "Stephansplatz") {
-                    var labelOptions = {
-                        className: 'leaflet-tooltip-own',
-                        permanent: true,
-                        direction: 'center',
-                        opacity: 1,
-                        interactive: false
-                    };
-                    var customTooltip = L.tooltip(labelOptions);
-                    customTooltip.setContent(gridNode.stationName);
-                    gridMarker.push(L.circleMarker(gridNode.coordinates, color).bindTooltip(customTooltip).openTooltip());
-                }
-            }
-            */
         })
         .catch(function (error) {
             // handle error
@@ -292,45 +245,12 @@ function fetchData(cityName, callback) {
         console.log(error);
       })
 }
-//window.jsPDF = window.jspdf.jsPDF;
-/*
-function exportMapToPDF() {
-    console.log("Exportieren!");
-
-    const mapWidth = map.getSize().x;
-    const mapHeight = map.getSize().y;
-
-    const tempDiv = document.createElement('div');
-    tempDiv.style.width = `${mapWidth}px`;
-    tempDiv.style.height = `${mapHeight}px`;
-    document.body.appendChild(tempDiv);
-
-    const scale = 2;
-    const resolution = 1000; // dpi
-
-    leafletImage(map, function(err, canvas) {
-        const scaledCanvas = document.createElement('canvas');
-        scaledCanvas.width = mapWidth * scale;
-        scaledCanvas.height = mapHeight * scale;
-        const context = scaledCanvas.getContext('2d');
-        context.scale(scale, scale);
-        context.drawImage(canvas, 0, 0);
-
-        const dataUrl = scaledCanvas.toDataURL('image/png', resolution / 72);
-
-        const doc = new jsPDF('landscape');
-        doc.text("Hello map fan!", 10, 10);
-        doc.addImage(dataUrl, 'PNG', 5, 15, mapWidth / 3, mapHeight / 3);
-        doc.save('map.pdf');
-
-        document.body.removeChild(tempDiv);
-    });
-}*/
 
 function clearMap() {
     stationMarker.forEach(marker => map.removeLayer(marker));
     gridMarker.forEach(marker => map.removeLayer(marker));
     gridEdges.forEach(edge => map.removeLayer(edge));
+    labels.forEach(label => map.removeLayer(label));
     map.eachLayer(layer => {
         if (layer instanceof L.Polyline) {
             map.removeLayer(layer);

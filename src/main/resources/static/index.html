@@ -30,14 +30,10 @@
 
 </head>
 <body>
-<h1>Hello World of metro maps!!</h1>
-<div id="map"></div>
+<div class="wrapper">
+    <h1 class="general">Octilinear Metro Maps</h1>
 
-<div id="buttonContainer">
-    Grid cell (width/height in km): <input id="gridSize" type="number" min="0" step="0.1" value="0.5">
-    Distance (node to true location): <input id="distanceR" type="number" min="0" step="0.1" value="0.77">
-    <button class="btn btn-secondary" type="button" id="changeGridCells">Change grid</button>
-    <div class="dropdown">
+    <div class="dropdown general">
         <button id="dropdownMenuButton" class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             Choose a city!
         </button>
@@ -49,35 +45,41 @@
             <li><a class="dropdown-item" data-value="stuttgart">Stuttgart</a></li>
         </ul>
     </div>
-<!--    <div class="dropdown">-->
-<!--        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">-->
-<!--            <a class="dropdown-item" href="#vienna" data-value="vienna">Vienna</a>-->
-<!--            <a class="dropdown-item" href="#berlin" data-value="berlin">Berlin</a>-->
-<!--            <a class="dropdown-item" href="#freiburg" data-value="freiburg">Freiburg</a>-->
-<!--            <a class="dropdown-item" href="#london" data-value="london">London</a>-->
-<!--            <a class="dropdown-item" href="#nyc_subway" data-value="nyc_subway">New York</a>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--    <div class="btn-group btn-group-toggle" data-toggle="buttons">-->
+    <div id="map" class="general"></div>
 
+    <div id="buttonContainer">
+        Grid cell (width/height in km): <input id="gridSize" type="number" min="0" step="0.1" value="0.5">
+        Distance (node to true location): <input id="distanceR" type="number" min="0" step="0.1" value="0.77">
+        <button class="btn btn-secondary" type="button" id="changeGridCells">Change grid</button>
 
-        <label class="btn btn-secondary">
-            <input type="radio" name="options" id="removeMap-button" autocomplete="off"> Remove Map
-        </label>
-        <label class="btn btn-secondary active">
-            <input type="radio" name="options" id="addMap-button" autocomplete="off" checked> Add Map
-        </label>
-        <label class="btn btn-secondary active">
-            <input type="checkbox" name="options" id="show-octi-lines-button" autocomplete="off" checked> Show octilinear drawing
-        </label>
-        <label class="btn btn-secondary active">
-            <input type="checkbox" name="options" id="show-geo-lines-button" autocomplete="off" checked> Show geografic drawing
-        </label>
-        <label class="btn btn-secondary active">
-            <input type="checkbox" name="options" id="show-labels-button" autocomplete="off" checked> Show labels
-        </label>
+    <!--    <div class="dropdown">-->
+    <!--        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">-->
+    <!--            <a class="dropdown-item" href="#vienna" data-value="vienna">Vienna</a>-->
+    <!--            <a class="dropdown-item" href="#berlin" data-value="berlin">Berlin</a>-->
+    <!--            <a class="dropdown-item" href="#freiburg" data-value="freiburg">Freiburg</a>-->
+    <!--            <a class="dropdown-item" href="#london" data-value="london">London</a>-->
+    <!--            <a class="dropdown-item" href="#nyc_subway" data-value="nyc_subway">New York</a>-->
+    <!--        </div>-->
+    <!--    </div>-->
+    <!--    <div class="btn-group btn-group-toggle" data-toggle="buttons">-->
 
-    <div class = "my-div-icon"></div>
+        <div class="btn-control-group">
+            <label class="btn btn-secondary">
+                <input type="radio" name="options" id="removeMap-button" autocomplete="off"> Remove Map
+            </label>
+            <label class="btn btn-secondary active">
+                <input type="radio" name="options" id="addMap-button" autocomplete="off" checked> Add Map
+            </label>
+            <label class="btn btn-secondary active">
+                <input type="checkbox" name="options" id="show-octi-lines-button" autocomplete="off" checked> Show octilinear drawing
+            </label>
+            <label class="btn btn-secondary active">
+                <input type="checkbox" name="options" id="show-geo-lines-button" autocomplete="off" checked> Show geografic drawing
+            </label>
+            <label class="btn btn-secondary active">
+                <input type="checkbox" name="options" id="show-labels-button" autocomplete="off" checked> Show labels
+            </label>
+        </div>
     </div>
 </div>
 
