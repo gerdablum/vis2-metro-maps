@@ -15,7 +15,7 @@ var viewArray = {
     berlin: { lat: 52.52437, lon: 13.41053, zoom: 13, name: "Berlin" },
     freiburg: { lat: 47.997791, lon: 7.842609, zoom: 13, name: "Freiburg"},
     london: { lat: 51.507359, lon: -0.136439, zoom: 13, name: "London" },
-    nyc_subway: { lat: 40.730610, lon: -73.935242, zoom: 11, name: "New York" }
+    stuttgart: { lat:  48.783333, lon:  9.183333, zoom: 13, name: "Stuttgart" }
 };
 
 var labelOptions = {

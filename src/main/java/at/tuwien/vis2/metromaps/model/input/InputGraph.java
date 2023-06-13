@@ -97,8 +97,27 @@ public class InputGraph {
     }
 
     public List<InputLineEdge> sortEdges() {
-        boolean containsDanglingVertices = true;
+        List<InputLineEdge> allEdges = new ArrayList<>(inputGraph.edgeSet());
+        List<InputLineEdge> allSortedEdges = new ArrayList<>();
+        while (!allEdges.isEmpty()) {
+            List<InputLineEdge> partSortedEdges = new ArrayList<>(sortPartEdges(allEdges));
+            allSortedEdges.addAll(partSortedEdges);
+
+            if (partSortedEdges.isEmpty()) {
+                // add remaining edges!
+                allSortedEdges.addAll(allEdges);
+                allEdges.clear();
+            }
+
+            partSortedEdges.forEach(allEdges::remove);
+        }
+
+        return allSortedEdges;
+    }
+
+    private List<InputLineEdge> sortPartEdges(List<InputLineEdge> allEdges) {
         List<InputLineEdge> sortedEdges = new ArrayList<>();
+        boolean containsDanglingVertices = true;
         InputStation stationWithHighestLdeg = getStationWithHighestLdeg(false);
         stationWithHighestLdeg.setProcessingState(InputStation.ProcessingState.DANGLING);
         while (containsDanglingVertices) {
@@ -107,10 +126,13 @@ public class InputGraph {
             Set<InputLineEdge> adjacentEdges = inputGraph.incomingEdgesOf(danglingStationWithHighestLdeg);
             Set<InputStation> adjacentStationsSet = new HashSet<>();
             for (InputLineEdge e : adjacentEdges) {
-                InputStation target = inputGraph.getEdgeTarget(e);
-                InputStation source = inputGraph.getEdgeSource(e);
-                adjacentStationsSet.add(source);
-                adjacentStationsSet.add(target);
+                if (inputGraph.containsEdge(e)) {
+                    InputStation target = inputGraph.getEdgeTarget(e);
+                    InputStation source = inputGraph.getEdgeSource(e);
+                    adjacentStationsSet.add(source);
+                    adjacentStationsSet.add(target);
+                }
+
             }
             // take all unprocessed nodes and sort after ldeg
             List<InputStation> adjacentStations = adjacentStationsSet.stream()
@@ -134,8 +156,6 @@ public class InputGraph {
         }
         resetStationProcesingState();
         return sortedEdges;
-
-        // TODO sort graph also if it is not connected
     }
 
     private void resetStationProcesingState() {
