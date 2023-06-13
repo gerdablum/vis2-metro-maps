@@ -331,7 +331,11 @@ public class GridGraph {
 
 
             Set<GridEdge> adjacentEdges = gridGraph.outgoingEdgesOf(vertex);
-
+            int edgeDegree = 1;
+            int rotation = 45;
+            // 1  2  3
+            // 4     5
+            // 8  7  6
             for (GridEdge e : adjacentEdges) {// if path not used => place labelling there
                 if (!allPaths.stream().anyMatch(path -> path.contains(e))) {
                     if(e.getDestination().getName().equals(vertex.getName())) {
@@ -343,10 +347,30 @@ public class GridGraph {
                     double midpointY = midpointCoords[1];
                     System.out.println("Midpoint coordinates: (" + midpointX + ", " + midpointY + ")");
                     vertex.setLabelCoordinates(midpointCoords);
+                    switch (edgeDegree) {
+                        case 1:
+                        case 6:
+                            rotation = 45;
+                            break;
+                        case 2:
+                        case 7:
+                            rotation = 0;
+                            break;
+                        case 3:
+                        case 8:
+                            rotation = -45;
+                            break;
+                        case 4:
+                        case 5:
+                            rotation = 0;
+                            break;
+                    }
+                    vertex.setLabelRotation(rotation);
                     break;
                 } else {
                     //System.out.println("edge: " + e.getDestination().getName() + " " + e.getSource().getName() + " is in allPaths");
                 }
+                edgeDegree++;
             }
         }
         System.out.println("Amount: ********** " + i);

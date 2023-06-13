@@ -23,6 +23,10 @@ margin: 0 auto;
     color: #000;
 }
 
+.why-no-rotate {
+    transform: rotate(45deg);
+}
+
 /*
 .leaflet-tooltip-left:before {
     right: 0;
@@ -53,4 +57,11 @@ margin: 0 auto;
     -ms-user-select: none;
 
     transform: rotate(45deg) !important;
+}
+
+.rotated-labels {
+    width: 1000px;
+    transform-origin: left center;
+    font-weight: bold;
+    hyphens: none;
 }

@@ -11,6 +11,7 @@ public class GridVertex {
     private int indexY;
     private double[] coordinates;
     private double[] labelCoordinates;
+    private int labelRotation;
     private String stationName;
     private boolean isTaken = false;
     private Map<String, Boolean> takenLines;
@@ -63,9 +64,15 @@ public class GridVertex {
     public void setLabelCoordinates(double[] labelCoordinates) {
         this.labelCoordinates = labelCoordinates;
     }
+    public void setLabelRotation(int labelRotation) {
+        this.labelRotation = labelRotation;
+    }
 
     public double[] getLabelCoordinates() {
         return labelCoordinates;
+    }
+    public int getLabelRotation() {
+        return labelRotation;
     }
     public String getStationName() {
         return stationName;
