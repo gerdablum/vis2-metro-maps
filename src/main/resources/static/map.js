@@ -22,15 +22,16 @@ var labelOptions = {
     direction: 'center',
     opacity: 1,
     interactive: false,
+    rotationAngle: 45
 };
 var invisibleMarkerOptions = {
-    /*icon: L.divIcon({
+    /*icon: L.divIcon({         // make vertex invisible TODO: activate
         className: 'invisible-marker',
         html: '',
         iconSize: [1, 1]
     }),*/
     interactive: false,
-    rotationAngle: 45       // this is for rotating blue markers
+    rotationAngle: 45,       // this is for rotating blue markers
 };
 var stationMarkerOptions = {
     color: 'black',
@@ -57,14 +58,19 @@ function loadMap() {
     addMapLayer();
     fetchOctilinear(cityData.name);
     fetchData(cityData.name);
+    addRotationToMarkers();
     zoomEffect();
+    addRotationToMarkers();
 }
 function zoomEffect() {
     map.on("zoomend", function() {
         var zoom = map.getZoom();
         console.log(zoom);
         if (zoom > 12 && stationMarker != null) {
-            stationMarker.forEach(a => a.addTo(map));
+            stationMarker.forEach(a => {
+
+                a.addTo(map);
+            })
             gridEdges.forEach(a => a.addTo(map));
             gridMarker.forEach(a => a.addTo(map));
             console.log("add details!");
@@ -134,20 +140,61 @@ function fetchGrid(cityName) {
                         gridEdge.destination.coordinates], {color: 'grey', opacity: 0.5, weight: 10}).bindTooltip(text).openTooltip());
                 }
             }
+            i = 0;
             for (var gridNode of response.data.gridVertices) {
                 var text = gridNode.name + ", " + gridNode.stationName + ", " + gridNode.coordinates[0] + gridNode.coordinates[1];
                 //var color =  {color: 'red'}
                 if (gridNode.stationName !== null) {
-                    gridMarker.push(L.circleMarker(gridNode.coordinates,stationMarkerOptions).bindTooltip(text).openTooltip());
+                    i++;
+                    stationMarker.push(L.circleMarker(gridNode.coordinates,stationMarkerOptions).bindTooltip(text).openTooltip());
 
-                    var customTooltip = L.tooltip(labelOptions);
-                    customTooltip.setContent(gridNode.stationName);
-                    gridMarker.push(L.marker(gridNode.labelCoordinates, invisibleMarkerOptions).bindTooltip(customTooltip).openTooltip());
+                    /*var tooltipElements = document.querySelectorAll('.leaflet-tooltip-own');
+                    console.log(tooltipElements);
+                    if (tooltipElements) {
+                        tooltipElements.forEach(function(element) {
+                            // Führe hier die gewünschten Operationen mit dem Element durch
+                            applyTransform(element);
+                            console.log("HERE 2");
+                        });
+                    } else {
+                        console.log('Das Element wurde nicht gefunden.');
+                    }*/
+                    //var customTooltip = L.tooltip(labelOptions);
+                    //customTooltip.setContent(gridNode.stationName);
+                    //stationMarker.push(L.marker(gridNode.labelCoordinates, invisibleMarkerOptions).bindTooltip(customTooltip).openTooltip());
 
-                    if (gridNode.stationName === "Stephansplatz" || gridNode.stationName === "Karlsplatz" || gridNode.stationName === "Taubstummengasse") {
-                        //gridMarker.push(invisibleMarker);
-                        //gridMarker.push(L.circleMarker(gridNode.coordinates, color).bindTooltip(customTooltip).openTooltip());
-                        //gridMarker.push(L.circleMarker(gridNode.labelCoordinates, color).bindTooltip(customTooltip).openTooltip());
+                    var marker = L.marker(gridNode.labelCoordinates, {
+                        opacity: 0.01
+                    }).bindTooltip(gridNode.stationName,
+                        {
+                            permanent: true,
+                            className: "stationMarker" + i,
+                            offset: [0, 0],
+                            direction: "center"
+                        }
+                    ).openTooltip();
+
+                    var content = marker['_tooltip']['_container'];
+                    //var content = L(marker).getTooltip()._container;
+                    console.log(marker);
+                    var style = $(content).attr('style');
+                    var transformProperty = style.substring(style.indexOf('transform'));
+                    var transformRotationProperty = transformProperty.replace(';', ' rotation(45deg);');
+                    var changedContent = content.outerHTML.replace(transformProperty, transformRotationProperty);
+
+                    marker['_tooltip'].setContent(changedContent);
+                    $('.shapesText' + i).css({'transform': 'rotate(45deg)'});
+
+                    stationMarker.push(marker);
+
+
+                    //var tooltipElement = document.querySelector('[style*="translate3d"]');
+                    //tooltipElement.style.transform += ' rotate(45deg)';
+
+                    if (gridNode.stationName === "Ottakring" || gridNode.stationName === "Karlsplatz" || gridNode.stationName === "Taubstummengasse") {
+                        //tooltipElement = document.getElementById("leaflet-tooltip-739");
+                        //console.log(tooltipElement);
+                        //tooltipElement.style.transform += ' rotate(45deg)';
                     }
                 }
                 if (debug) {               // DEBUG
@@ -182,6 +229,13 @@ function fetchGrid(cityName) {
             // handle error
             console.log(error);
         })
+}
+
+function applyTransform(element) {
+    var existingTransform = element.style.transform;
+    var newTransform = existingTransform + ' rotate(45deg) !important';
+    console.log(element.style.transform);
+    element.style.transform = newTransform;
 }
 
 function fetchData(cityName) {
@@ -377,4 +431,24 @@ document.getElementById("changeGridCells").addEventListener("click", function() 
     gridSize = gridSizeInput ? parseFloat(gridSizeInput) : null;
     distanceR = distanceRInput ? parseFloat(distanceRInput) : null;
     loadMap();
+});
+
+function addRotationToMarkers() {
+    var tooltips = document.querySelectorAll('.leaflet-tooltip-own');
+    console.log("Hello there 1");
+    console.log(tooltips);
+    tooltips.forEach(function(tooltip) {
+        console.log("Hello there 2");
+        var existingTransform = tooltip.style.transform;
+        console.log(existingTransform);
+        var newTransform = existingTransform + ' rotate(45deg) !important';
+        tooltip.style.transform = newTransform;
+        console.log(tooltip.style.transform);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltips = document.querySelectorAll('.leaflet-tooltip');
+    console.log("Hello there 55");
+    console.log(tooltips);
 });
