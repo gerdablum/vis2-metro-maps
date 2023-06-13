@@ -128,10 +128,13 @@ public class InputGraph {
             Set<InputLineEdge> adjacentEdges = inputGraph.incomingEdgesOf(danglingStationWithHighestLdeg);
             Set<InputStation> adjacentStationsSet = new HashSet<>();
             for (InputLineEdge e : adjacentEdges) {
-                InputStation target = inputGraph.getEdgeTarget(e);
-                InputStation source = inputGraph.getEdgeSource(e);
-                adjacentStationsSet.add(source);
-                adjacentStationsSet.add(target);
+                if (inputGraph.containsEdge(e)) {
+                    InputStation target = inputGraph.getEdgeTarget(e);
+                    InputStation source = inputGraph.getEdgeSource(e);
+                    adjacentStationsSet.add(source);
+                    adjacentStationsSet.add(target);
+                }
+
             }
             // take all unprocessed nodes and sort after ldeg
             List<InputStation> adjacentStations = adjacentStationsSet.stream()

@@ -10,9 +10,9 @@ public class Utils {
     public static final String berlin = "Berlin";
     public static final String freiburg = "Freiburg";
     public static final String london = "London";
-    public static final String nyc = "New York";
+    public static final String stuttgart = "Stuttgart";
 
-    public static final List<String> allCities = Arrays.asList(vienna, berlin, freiburg, london, nyc);
+    public static final List<String> allCities = Arrays.asList(vienna, berlin, freiburg, london, stuttgart);
 
 
     public static double getDistanceInKmTo(double[] coordinatesRef, double[] coordinates) {

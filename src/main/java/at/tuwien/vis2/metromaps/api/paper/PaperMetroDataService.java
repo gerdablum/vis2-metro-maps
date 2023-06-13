@@ -30,14 +30,14 @@ public class PaperMetroDataService implements MetroDataProvider {
         Resource berlin = new ClassPathResource("exports/berlin.json");
         Resource freiburg = new ClassPathResource("exports/freiburg.json");
         Resource london = new ClassPathResource("exports/london.json");
-        Resource nyc = new ClassPathResource("exports/nyc_subway.json");
+        Resource stuttgart = new ClassPathResource("exports/stuttgart.json");
         Resource vienna = new ClassPathResource("exports/wien.json");
 
         this.resources = new HashMap<>();
         resources.put(Utils.berlin, new ResourceWrapper(berlin));
         resources.put(Utils.freiburg, new ResourceWrapper(freiburg));
         resources.put(Utils.london, new ResourceWrapper(london));
-        resources.put(Utils.nyc, new ResourceWrapper(nyc));
+        resources.put(Utils.stuttgart, new ResourceWrapper(stuttgart));
         resources.put(Utils.vienna, new ResourceWrapper(vienna));
 
         this.objectMapper = new ObjectMapper();
@@ -71,9 +71,13 @@ public class PaperMetroDataService implements MetroDataProvider {
                     wrapper.allInputStations.get(to).addLines(inputLine);
                     InputStation startStation = wrapper.allInputStations.get(from);
                     InputStation endStations = wrapper.allInputStations.get(to);
-                    InputLineEdge lineEdge = new InputLineEdge(line.getProperties().getId(), startStation, endStations,
+                    String id = line.getProperties().getId();
+                    if (id == null) {
+                        id = UUID.randomUUID().toString();
+                    }
+                    InputLineEdge lineEdge = new InputLineEdge(id, startStation, endStations,
                             line.getCoordinates(), inputLine);
-                    wrapper.allInputLineEdges.put(lineEdge.getId(), lineEdge);
+                    wrapper.allInputLineEdges.put(id, lineEdge);
                 }
 
             } catch (IOException e) {
