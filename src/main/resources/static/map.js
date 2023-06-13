@@ -216,10 +216,12 @@ function fetchGrid(cityName, callback) {
                 //var color =  {color: 'red'}
                 if (gridNode.stationName !== null) {
                     gridMarker.push(L.circleMarker(gridNode.coordinates,stationMarkerOptions).bindTooltip(text).openTooltip());
+                    var rotation = 45
+                    var myIcon = L.divIcon({className: "rotated-labels", html: "<div style='transform: rotate(" + rotation + "deg)'>" + gridNode.stationName + "</div>"});
 
                     var customTooltip = L.tooltip(labelOptions);
                     customTooltip.setContent(gridNode.stationName);
-                    gridMarker.push(L.marker(gridNode.labelCoordinates, invisibleMarkerOptions).bindTooltip(customTooltip).openTooltip());
+                    gridMarker.push(L.marker(gridNode.labelCoordinates, {icon: myIcon}));
 
                     if (gridNode.stationName === "Stephansplatz" || gridNode.stationName === "Karlsplatz" || gridNode.stationName === "Taubstummengasse") {
                         //gridMarker.push(invisibleMarker);
