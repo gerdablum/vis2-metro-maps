@@ -87,7 +87,7 @@ public class PaperMetroDataService implements MetroDataProvider {
     private String normalizeStationName(String stationLabel) {
         if (stationLabel == null) return null;
         String truncated = stationLabel.replaceAll("\\(.*?\\)", "");
-        truncated = truncated.replaceAll("^U *|^S *\\+ *U *", "");
+        truncated = truncated.replaceAll("^U +|^S *\\+ *U +", "");
         return truncated;
     }
 
