@@ -216,7 +216,7 @@ function fetchGrid(cityName, callback) {
                 //var color =  {color: 'red'}
                 if (gridNode.stationName !== null) {
                     gridMarker.push(L.circleMarker(gridNode.coordinates,stationMarkerOptions).bindTooltip(text).openTooltip());
-                    var rotation = 45
+                    var rotation = gridNode.labelRotation;
                     var myIcon = L.divIcon({className: "rotated-labels", html: "<div style='transform: rotate(" + rotation + "deg)'>" + gridNode.stationName + "</div>"});
 
                     var customTooltip = L.tooltip(labelOptions);
