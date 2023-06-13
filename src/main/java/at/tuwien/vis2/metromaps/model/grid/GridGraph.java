@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class GridGraph {
 
@@ -105,8 +104,19 @@ public class GridGraph {
 
     public ShortestPath processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph) {
         String lineName = edgeFromInputGraph.getLines().get(0).getName();
-        if (sourceFromInputGraph.getName().equals("Seestadt") || targetFromInputGraph.getName().equals("Aspern Nord")) {
-            int a = 1;
+        if (sourceFromInputGraph.getName().equals("Gumpendorfer Straße") || targetFromInputGraph.getName().equals("Gumpendorfer Straße")) {
+                int a = 1;
+        }
+        Set<GridVertex> allGridVertices = new HashSet<>(gridGraph.vertexSet());
+        boolean isSingleSource= findAlreadyRoutedGridVertex(allGridVertices, sourceFromInputGraph.getName()) != null;
+        boolean isSingleTarget = findAlreadyRoutedGridVertex(allGridVertices, targetFromInputGraph.getName()) != null;
+
+        if (!isSingleSource && isSingleTarget) {
+            // swap!
+            logger.info("Swapping edge direction...");
+            InputStation temp = sourceFromInputGraph;
+            sourceFromInputGraph = targetFromInputGraph;
+            targetFromInputGraph = temp;
         }
         if(!currentLineName.equals(lineName)) {
             previouslyUsedEdge = null;
@@ -122,13 +132,22 @@ public class GridGraph {
         sourceCandidates.clear();
         targetCandidates.clear();
 
-        Set<GridVertex> allGridVertices = new HashSet<>(gridGraph.vertexSet());
+
         GridVertex takenSource = findAlreadyRoutedGridVertex(allGridVertices, sourceFromInputGraph.getName());
         GridVertex takenTarget = findAlreadyRoutedGridVertex(allGridVertices, targetFromInputGraph.getName());
+
         if (takenSource != null) {
             sourceCandidates.add(takenSource);
             UpdateGridGraphCost(gridGraph.outgoingEdgesOf(takenSource), 1);
             allGridVertices.remove(takenSource);
+            Optional<GridEdge> prevOptional = gridGraph.outgoingEdgesOf(takenSource)
+                    .stream()
+                    .filter(edge -> edge.isAlreadyRoutedForLine(lineName))
+                    .findFirst();
+            prevOptional.ifPresent(gridEdge -> previouslyUsedEdge = gridEdge);
+            if (prevOptional.isEmpty()) {
+                logger.warn("No previous edge found!");
+            }
         }
         if (takenTarget != null) {
             targetCandidates.add(takenTarget);
@@ -196,7 +215,7 @@ public class GridGraph {
         return first.orElse(null);
     }
 
-    public void searchCandidatesAndCalculateOffsetcosts(Set<GridVertex> allGridVertices, InputStation sourceFromInputGraph, InputStation targetFromInputGraph) {
+    private void searchCandidatesAndCalculateOffsetcosts(Set<GridVertex> allGridVertices, InputStation sourceFromInputGraph, InputStation targetFromInputGraph) {
         if(!sourceCandidates.isEmpty() && !targetCandidates.isEmpty()) {
             return;     // if both filled => return (at line crossings)
         }
@@ -327,8 +346,6 @@ public class GridGraph {
         for (Map.Entry<String, GridVertex> entry : uniqueVerticesByStation.entrySet()) {
             String stationName = entry.getKey();
             GridVertex vertex = entry.getValue();
-            System.out.println("Station: " + stationName + ", Vertex: " + vertex);
-
 
             Set<GridEdge> adjacentEdges = gridGraph.outgoingEdgesOf(vertex);
             int edgeDegree = 1;
@@ -341,11 +358,9 @@ public class GridGraph {
                     if(e.getDestination().getName().equals(vertex.getName())) {
                         e.reverse();
                     }
-                    System.out.println("empty edge: " + e.getDestination().getName() + " " + e.getSource().getName());
                     double[] midpointCoords = getMidpointCoordinates(vertex, e.getDestination());
                     double midpointX = midpointCoords[0];
                     double midpointY = midpointCoords[1];
-                    System.out.println("Midpoint coordinates: (" + midpointX + ", " + midpointY + ")");
                     vertex.setLabelCoordinates(midpointCoords);
                     switch (edgeDegree) {
                         case 1:
@@ -373,7 +388,6 @@ public class GridGraph {
                 edgeDegree++;
             }
         }
-        System.out.println("Amount: ********** " + i);
     }
     public double[] getMidpointCoordinates(GridVertex centerVertex, GridVertex targetVertex) {
         double centerLatitude = centerVertex.getCoordinates()[0];
@@ -441,9 +455,6 @@ public class GridGraph {
     public void closeSinkEdgesAroundVertices(String lineName, List<List<GridVertex>> allVertices) {
         List<GridVertex> vertices = allVertices.stream().flatMap(Collection::stream).toList();
         vertices.forEach(vertex -> {
-            if (vertex.getStationName() != null && vertex.getStationName().equals("Westbahnhof")) {
-                int a = 0;
-            }
             Set<GridEdge> adjacentEdges = gridGraph.outgoingEdgesOf(vertex);
             if(vertex.isClosedForLine(lineName) || vertex.getStationName() == null) {
                 adjacentEdges.forEach(e -> e.setCostsInf());

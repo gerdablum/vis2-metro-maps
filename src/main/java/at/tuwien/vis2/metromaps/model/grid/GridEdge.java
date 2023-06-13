@@ -4,16 +4,26 @@ import at.tuwien.vis2.metromaps.model.input.InputLine;
 
 import java.util.*;
 
-// TODO this class is to wrap default edge and prevent serializing errors with jackson
 public class GridEdge {
 
     public boolean isClosedForLine(String lineName) {
+        // TODO what does this method actually do??
         Boolean isLineTaken = this.takenLines.get(lineName);
         if (isLineTaken == null) {
             return true;
         }
         return isLineTaken;
     }
+
+
+    public boolean isAlreadyRoutedForLine(String lineName) {
+        Boolean isLineTaken = this.takenLines.get(lineName);
+        if (isLineTaken == null) {
+            return false;
+        }
+        return isLineTaken;
+    }
+
 
     public enum BendCost {
         C_45(2),

@@ -103,6 +103,12 @@ public class InputGraph {
             List<InputLineEdge> partSortedEdges = new ArrayList<>(sortPartEdges(allEdges));
             allSortedEdges.addAll(partSortedEdges);
 
+            if (partSortedEdges.isEmpty()) {
+                // add remaining edges!
+                allSortedEdges.addAll(allEdges);
+                allEdges.clear();
+            }
+
             partSortedEdges.forEach(allEdges::remove);
         }
 
@@ -111,7 +117,8 @@ public class InputGraph {
         // TODO sort graph also if it is not connected
     }
 
-    private List<InputLineEdge> sortPartEdges(List<InputLineEdge> sortedEdges) {
+    private List<InputLineEdge> sortPartEdges(List<InputLineEdge> allEdges) {
+        List<InputLineEdge> sortedEdges = new ArrayList<>();
         boolean containsDanglingVertices = true;
         InputStation stationWithHighestLdeg = getStationWithHighestLdeg(false);
         stationWithHighestLdeg.setProcessingState(InputStation.ProcessingState.DANGLING);
@@ -137,7 +144,10 @@ public class InputGraph {
             // add the edge that connects highestStation with orderd adjacent unprocessed edge
             adjacentStations.forEach(adjacentStation -> {
                 adjacentStation.setProcessingState(InputStation.ProcessingState.DANGLING);
-                sortedEdges.add(inputGraph.getEdge(danglingStationWithHighestLdeg, adjacentStation));
+                InputLineEdge edgeToAdd = inputGraph.getEdge(danglingStationWithHighestLdeg, adjacentStation);
+                if (allEdges.contains(edgeToAdd)) {
+                    sortedEdges.add(edgeToAdd);
+                }
             });
             danglingStationWithHighestLdeg.setProcessingState(InputStation.ProcessingState.PROCESSED);
 
