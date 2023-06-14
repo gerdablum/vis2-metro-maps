@@ -3,6 +3,9 @@ package at.tuwien.vis2.metromaps.model.input;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a station on the input graph
+ */
 public class InputStation {
 
     enum ProcessingState {
@@ -18,6 +21,13 @@ public class InputStation {
     private List<InputLine> line;
     private ProcessingState processingState;
 
+    /**
+     * Creates an input station
+     * @param name name of the station (e.g. Schlachthausgasse). Must be unique
+     * @param id
+     * @param coordinates location of the station
+     * @param line all lines that pass through this station (Number of lines -> ldeg)
+     */
     public InputStation(String name, String id, double[] coordinates, List<InputLine> line) {
         if (name == null) {
             this.name = id;
@@ -30,30 +40,51 @@ public class InputStation {
         this.processingState = ProcessingState.UNPROCESSED;
     }
 
+    /**
+     *
+     * @return unique station name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     *
+     * @return id of station
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     *
+     * @return location of station
+     */
     public double[] getCoordinates() {
         return coordinates;
     }
 
+    /**
+     *
+     * @return all lines travelling through this station
+     */
     public List<InputLine> getLine() {
         return line;
     }
 
-    public ProcessingState getProcessingState() {
+    ProcessingState getProcessingState() {
         return processingState;
     }
 
-    public void setProcessingState(ProcessingState processingState) {
+    void setProcessingState(ProcessingState processingState) {
         this.processingState = processingState;
     }
 
+    /**
+     * Calculates the distance in km from this vertex to a second location
+     * @param coordinatesRef coordinates of the second location
+     * @return distance in km
+     */
     public double getDistanceInKmTo(double[] coordinatesRef) {
         double latRefRadian = Math.toRadians(coordinatesRef[0]);
         double lonRefRadian = Math.toRadians(coordinatesRef[1]);

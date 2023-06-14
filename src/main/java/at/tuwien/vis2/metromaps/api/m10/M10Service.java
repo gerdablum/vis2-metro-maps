@@ -16,7 +16,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
+/**
+ * class for old data resource, should not be used
+ */
 @Service
+@Deprecated
 public class M10Service implements MetroDataProvider {
 
 

@@ -4,17 +4,26 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+/**
+ * Represents an edge in the input graph from station to station
+ */
 public class InputLineEdge {
 
     private String id;
     private InputStation startStation;
     private InputStation endStation;
 
-    // TODO currently only needed to draw coordinates in map. We should distinguish between edges for graph and
-    // geographical lines for drawing with different datatypes.
     private double[][] coordinates;
     private List<InputLine> lines;
 
+    /**
+     * Creates an edge from start station to end station. Contains all lines that are travelling on this route.
+     * @param id must be unique
+     * @param startStation one station between the edge
+     * @param endStation other station between the edge
+     * @param coordinates start and end coordinates of the edge, in some cases also keypoint coordinates form the geografical line routing
+     * @param lineNames all lines that travel between those two stations
+     */
     public InputLineEdge(String id, InputStation startStation, InputStation endStation, double[][] coordinates, List<InputLine> lineNames) {
         this.id = id;
         this.startStation = startStation;
@@ -23,36 +32,70 @@ public class InputLineEdge {
         this.lines = new ArrayList<>(lineNames);
     }
 
+    /**
+     * Creates an input edge without stations (vertices)
+     * @param id must be unique
+     * @param coordinates start and end coordinates of the edge, in some cases also keypoint coordinates form the geografical line routing
+     * @param lineNames  all lines that travel on this way
+     */
     public InputLineEdge(String id, double[][] coordinates, List<InputLine> lineNames) {
         this.id = id;
         this.coordinates = coordinates;
         this.lines = new ArrayList<>(lineNames);
     }
 
+    /**
+     *
+     * @return unique id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     *
+     * @return adjacent input station
+     */
     public InputStation getStartStation() {
         return startStation;
     }
 
+    /**
+     *
+     * @param startStation adjacent station. Start and end must not be equal (no loops alowed)
+     */
     public void setStartStation(InputStation startStation) {
         this.startStation = startStation;
     }
 
+    /**
+     *
+     * @return adjacent station
+     */
     public InputStation getEndStation() {
         return endStation;
     }
 
+    /**
+     *
+     * @param endStation adjacent station. Start and end must not be equal (no loops alowed)
+     */
     public void setEndStation(InputStation endStation) {
         this.endStation = endStation;
     }
 
+    /**
+     *
+     * @return lines travelling along the edge
+     */
     public List<InputLine> getLines() {
         return lines;
     }
 
+    /**
+     *
+     * @return geografic representation of the line
+     */
     public double[][] getCoordinates() {
         return coordinates;
     }
@@ -75,15 +118,12 @@ public class InputLineEdge {
         return false;
     }
 
+    /**
+     * swaps start and end station
+     */
     public void reverse() {
         InputStation temp = this.endStation;
         this.endStation = this.startStation;
         this.startStation = temp;
-    }
-
-    public void addLine(InputLine line) {
-        if (!line.getName().contains(line.getName())) {
-            this.lines.add(line);
-        }
     }
 }

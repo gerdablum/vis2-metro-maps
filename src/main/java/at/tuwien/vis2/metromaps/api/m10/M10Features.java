@@ -7,7 +7,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
+
+/**
+ * class for old data resource, should not be used
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Deprecated
 public class M10Features {
     static Logger logger = LoggerFactory.getLogger(M10Features.class);
 

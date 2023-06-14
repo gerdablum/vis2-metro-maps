@@ -10,11 +10,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * This class is for testing with small datasets. Creates in memory lines and stations.
+ */
 public class FakeDataService implements MetroDataProvider {
 
     private List<InputStation> stations;
     private List<InputLineEdge> edges;
 
+    /**
+     * creates instances of lines and stations for testing. Can be changed depending on test case.
+     */
     public FakeDataService() {
         InputLine line3 = new InputLine("3", "yellow");
         InputLine line1 = new InputLine("1", "red");

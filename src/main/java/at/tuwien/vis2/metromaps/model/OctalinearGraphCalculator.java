@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Wraps MetroDataProvider, input graph and grid graph and calculates the output graph
+ */
 @Component
 public class OctalinearGraphCalculator {
 
@@ -20,15 +23,32 @@ public class OctalinearGraphCalculator {
     Map<String, GridGraph> gridgraphs;
     Map<String, List<List<GridEdge>>> outputGraphs;
 
+    /**
+     * Gets input lines and input stations from MetroDataProvider and creates a grid graph. This class also calculates
+     * the octilinear output graph
+     * @param metroDataProvider instance that holds all input data
+     */
     @Autowired
     public OctalinearGraphCalculator(MetroDataProvider metroDataProvider) {
-        // TODO get this linenames from metroDataProvider
         this.metroDataProvider = metroDataProvider;
         this.gridgraphs = new HashMap<>();
         this.outputGraphs = new HashMap<>();
         //calculateOutputGraph("Vienna");
     }
 
+    /**
+     * calculates the output graph containing all stations and lines from the input graph routed in a way that
+     * preserves original station placement as good as possible and minimizes line bend at the same time.
+     * First this method gets the ordered input line edges from the metroDataProvider and creates an input graph.
+     * This data and the bounding box information is then used to create the grid graph.
+     * Next, the input graph sorts all the edges according to the highest ldeg. Then each edge gets processed through
+     * the grid graph which returns an optimal path from station to station. All paths are collected and returned.
+     * Stores the grid graph for each city in memory. Graph is only recalculated if size or radius changes.
+     * @param city name of city chosen
+     * @param gridSize distance between each grid vertex
+     * @param distanceR search radius for possible source/target vertices when routing optimal paths.
+     * @return All routed paths (GridEdges) through the grid graph.
+     */
     public List<List<GridEdge>> calculateOutputGraph(String city, double gridSize, double distanceR) {
         if (outputGraphs.get(city) != null && !outputGraphs.get(city).isEmpty() && gridgraphs.get(city).checkGridParameters(gridSize, distanceR)) {
             return outputGraphs.get(city);
@@ -69,6 +89,11 @@ public class OctalinearGraphCalculator {
         return allPaths;
     }
 
+    /**
+     *
+     * @param city selected city
+     * @return gridgraph at the current state of processing
+     */
     public GridGraph getGridGraph(String city) {
         return gridgraphs.get(city);
     }

@@ -13,6 +13,9 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Wraps a graph with a fixed bounding box and an octilinear grid. It is possible to route paths on the grid graph.
+ */
 public class GridGraph {
 
     private final Graph<GridVertex, GridEdge> gridGraph;
@@ -29,6 +32,20 @@ public class GridGraph {
 
     public Set<GridVertex> sourceCandidates = new HashSet<>();
     public Set<GridVertex> targetCandidates = new HashSet<>();
+
+    /**
+     * Created an octilinear grid graph with vertices of type GridVertex and edges of type GridEdge.
+     * Each vertex has 8 outgoing edges. The vertices have a distance of d. The size is calculated based on the given
+     * corner points.
+     * @param widthInputGraph width calculated in the input graph, based on most left and most right station
+     * @param heightInputGraph height calculated in the input graph, based on most upper and most lower station
+     * @param leftUpper coordinates of left upper grid graph boundary
+     * @param leftLower coordinates of left lower grid graph boundary
+     * @param rightUpper coordinates of right upper grid graph boundary
+     * @param dinput grid distance, meaning the distance vertices have to each other in kms.
+     * @param rinput search radius in km, stations around a radius r are considered as source/target candidates when
+     *               routing a path.
+     */
 
     public GridGraph(double widthInputGraph, double heightInputGraph, double[] leftUpper, double[] leftLower, double[] rightUpper, double dinput, double rinput) {
         d = dinput;
@@ -103,6 +120,22 @@ public class GridGraph {
         numberOfVerticesVertical = (int) Math.ceil(heightInputGraph / d);
     }
 
+    /**
+     * Calculates an optimal path on the grid graph from a given line of the input graph. This is always from a station to another station.
+     * Optimal means the bends are as small as possible while also the station placement is close to the original station.
+     * This method first calculates source and target candidates (edges) within a radius r of the original stations.
+     * If target or source are already routed, these stations are taken as start or end. Otherwise, offset costs are
+     * calculated for each source/target candidate edge. The closer the edge to the original station, the lower the offset cost.
+     * next, an optimal path from each source to each target candidate is calculated using dijkstra.
+     * Setting the costs of each routed edge to inf, prevents routing loops.
+     * lastly the optimal path is returned.
+     * @param edgeFromInputGraph edge that has to be routed on the grid graph
+     * @param sourceFromInputGraph start station from input graph
+     * @param targetFromInputGraph destination/target station from input graph.
+     * @param lineName line that is routed currently
+     * @return shortest path with minimal bends and optimal station placement
+     * from input source to input destination routed on the grid graph.
+     */
     public ShortestPath processInputEdge(InputLineEdge edgeFromInputGraph, InputStation sourceFromInputGraph, InputStation targetFromInputGraph, String lineName) {
         if (sourceFromInputGraph.getName().equals("Seestadt") || targetFromInputGraph.getName().equals("Aspern Nord")) {
             int a = 1;
@@ -195,7 +228,7 @@ public class GridGraph {
         return first.orElse(null);
     }
 
-    public void searchCandidatesAndCalculateOffsetcosts(Set<GridVertex> allGridVertices, InputStation sourceFromInputGraph, InputStation targetFromInputGraph) {
+    private void searchCandidatesAndCalculateOffsetcosts(Set<GridVertex> allGridVertices, InputStation sourceFromInputGraph, InputStation targetFromInputGraph) {
         if(!sourceCandidates.isEmpty() && !targetCandidates.isEmpty()) {
             return;     // if both filled => return (at line crossings)
         }
@@ -245,19 +278,6 @@ public class GridGraph {
             //gridGraph.setEdgeWeight(edge, edge.getCosts());
         });
     }
-
-//    private Set<GridVertex> filterForAlreadyUsedVertices(Set<GridVertex> sourceCandidates, String sourceStationName) {
-//        // this is somehow very important and we dont know why...
-//        Set<GridVertex> taken = sourceCandidates.stream().filter(GridVertex::isTaken).collect(Collectors.toSet());
-//        if (taken.isEmpty()) {
-//            return sourceCandidates;
-//        }
-//        Set<GridVertex> takenWithSourceStation = taken.stream().filter(g -> sourceStationName.equals(g.getStationName())).collect(Collectors.toSet());
-//        if (takenWithSourceStation.isEmpty()) {
-//            return sourceCandidates;
-//        }
-//        return takenWithSourceStation;
-//    }
 
     private ShortestPath getShortestPathBetweenTwoSets(Set<GridVertex> sourceCandidates, Set<GridVertex> targetCandidates, GridEdge previousEdge) {
         double shortestDistance = Double.MAX_VALUE;
@@ -312,6 +332,12 @@ public class GridGraph {
 
     }
 
+    /**
+     * Proposes a position to place labels in the final octilinear output graph. This method returns the first free position
+     * (edge crossing in between stations) for station label placement.
+     * @param allVertices all routed vertices on the output graph
+     * @param allPaths all routed edges on the output graph
+     */
     public void calculateStationLabelling(List<List<GridVertex>> allVertices, List<List<GridEdge>> allPaths) {          // TODO
         Map<String, GridVertex> uniqueVerticesByStation = new HashMap<>();
         for (List<GridVertex> vertices : allVertices) {
@@ -374,7 +400,7 @@ public class GridGraph {
         }
         System.out.println("Amount: ********** " + i);
     }
-    public double[] getMidpointCoordinates(GridVertex centerVertex, GridVertex targetVertex) {
+    private double[] getMidpointCoordinates(GridVertex centerVertex, GridVertex targetVertex) {
         double centerLatitude = centerVertex.getCoordinates()[0];
         double centerLongitude = centerVertex.getCoordinates()[1];
         double targetLatitude = targetVertex.getCoordinates()[0];
@@ -415,14 +441,27 @@ public class GridGraph {
         }
     }
 
+    /**
+     * used for serializing
+     * @return
+     */
    public Set<GridVertex> getGridVertices() {
         return  gridGraph.vertexSet();
    }
 
+    /**
+     * used for serializing
+     * @return
+     */
    public Set<GridEdge> getEdges() {
         return gridGraph.edgeSet();
    }
 
+    /**
+     * reopens already routed edges after a whole line has been routed through the graph.
+     * @param lineName line to be opened
+     * @param allVertices all vertices from a routed line
+     */
     public void reopenSinkEdgesFor(String lineName, List<List<GridVertex>> allVertices) {
 
         // this is to allow double routing if two lines share the same edge
@@ -435,6 +474,7 @@ public class GridGraph {
         });
     }
 
+    // TODO delete
     public void closeSinkEdgesAroundVertices(String lineName, List<List<GridVertex>> allVertices) {
         List<GridVertex> vertices = allVertices.stream().flatMap(Collection::stream).toList();
         vertices.forEach(vertex -> {
@@ -450,6 +490,12 @@ public class GridGraph {
         });
     }
 
+    /**
+     * Check if grid has to be recalculated because input parameters changed
+     * @param gridSize distance between each grid vertex
+     * @param distanceR search radius for source/target candidates
+     * @return false if grid parameters have changed and grid has to be updates, true otherwise.
+     */
     public boolean checkGridParameters(double gridSize, double distanceR) {
         if(gridSize == r && distanceR == d) {
             return true;

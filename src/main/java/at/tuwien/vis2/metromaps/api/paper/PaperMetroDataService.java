@@ -17,6 +17,11 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
+/**
+ * This class reads the geojson data from https://octi.cs.uni-freiburg.de/ for the metro stations and lines.
+ * We currently provide data for the cities Berlin, Freiburg, London, Stuttgart, Vienna.
+ */
 @Service
 public class PaperMetroDataService implements MetroDataProvider {
 
@@ -25,6 +30,10 @@ public class PaperMetroDataService implements MetroDataProvider {
     private HashMap<String, ResourceWrapper> resources;
     private ObjectMapper objectMapper;
 
+    /**
+     * When creating a new instance, the data from all cities is loaded into resource wrappers
+     * where the stations and lines can be accessed.
+     */
     @Autowired
     public PaperMetroDataService() {
         Resource berlin = new ClassPathResource("exports/berlin.json");

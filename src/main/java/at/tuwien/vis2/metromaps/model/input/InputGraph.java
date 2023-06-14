@@ -8,6 +8,9 @@ import org.jgrapht.traverse.DepthFirstIterator;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Represents an input graph with stations and lines that should be mapped onto the grid graph
+ */
 public class InputGraph {
 
     private Graph<InputStation, InputLineEdge> inputGraph;
@@ -17,11 +20,18 @@ public class InputGraph {
     private double[] leftLowerCoordinates;
     private double[] rightUpperCoordinates;
 
+    /**
+     * Creates an empty graph.
+     */
     public InputGraph() {
         this.inputGraph = GraphTypeBuilder.<InputStation, InputLineEdge> undirected().allowingMultipleEdges(false)
                 .allowingSelfLoops(false).edgeClass(InputLineEdge.class).weighted(true).buildGraph();
     }
 
+    /**
+     * Inserts start station as vertex, end station as vertex and line as an edge into the input graph
+     * @param edges edge from DataProvider. Must have start and end station.
+     */
     public void addEdgeAndSourceDestVertices(List<InputLineEdge> edges) {
         for (InputLineEdge edge: edges) {
             inputGraph.addVertex(edge.getStartStation());
@@ -30,6 +40,12 @@ public class InputGraph {
         }
     }
 
+    /**
+     * Calculates the size of the input graph from the most left station coordinates, most right, most upper and so on.
+     * Calculates the bounding box coordinates around the whole size.
+     * Also calculates width and height of bounding box.
+     * Must be calculated before creating grid graph.
+     */
     public void calcBoundingBox() {
         Set<InputStation> stations = inputGraph.vertexSet();
         List<double[]> latLons = stations.stream().map(InputStation::getCoordinates).toList();
@@ -67,27 +83,47 @@ public class InputGraph {
         this.height = Utils.getDistanceInKmTo(leftUpper, leftLower);
     }
 
+    /**
+     * Needed to calculate size of grid graph
+     * @return width of bounding box around input graph
+     */
     public double getWidth() {
         return width;
     }
 
+    /**
+     * Needed to calculate size of grid graph
+     * @return height of bounding box around input graph
+     */
     public double getHeight() {
         return height;
     }
 
+    /**
+     * Needed to calculate size of grid graph
+     * @return left upper coordinates of bounding box around input graph
+     */
     public double[] getLeftUpperCoordinates() {
         return leftUpperCoordinates;
     }
 
+    /**
+     * Needed to calculate size of grid graph
+     * @return left lower coordinates of bounding box around input graph
+     */
     public double[] getLeftLowerCoordinates() {
         return leftLowerCoordinates;
     }
 
+    /**
+     * Needed to calculate size of grid graph
+     * @return right upper coordinates of bounding box around input graph
+     */
     public double[] getRightUpperCoordinates() {
         return rightUpperCoordinates;
     }
 
-    public int getLdegForStation(InputStation station) {
+    private int getLdegForStation(InputStation station) {
         Set<InputLineEdge> edges = inputGraph.incomingEdgesOf(station);
         int ldeg = 0;
         for (InputLineEdge e: edges) {
@@ -96,6 +132,11 @@ public class InputGraph {
         return ldeg;
     }
 
+    /**
+     * Sorts the edge according to the highest ldeg (line degree). Lines in a higher density area with higher degree
+     * are considered first.
+     * @return list of ordered edges, where the highest line degree comes first.
+     */
     public List<InputLineEdge> sortEdges() {
         List<InputLineEdge> allEdges = new ArrayList<>(inputGraph.edgeSet());
         List<InputLineEdge> allSortedEdges = new ArrayList<>();

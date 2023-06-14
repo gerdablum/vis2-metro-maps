@@ -18,6 +18,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+/**
+ * REST Controller for the backend application
+ */
 @RestController
 public class MainController {
 
@@ -29,6 +32,11 @@ public class MainController {
     private OctalinearGraphCalculator octalinearGraphCalculator;
 
 
+    /**
+     * Endpoint to get all stations with name and coordinates
+     * @param city name of the selected city
+     * @return list with all stations for given city
+     */
     @GetMapping("/{city}/stations")
     public List<InputStation> getAllStations(@PathVariable String city) {
         sanityCheckCity(city);
@@ -36,6 +44,13 @@ public class MainController {
 
         return subwayStations;
     }
+
+    /**
+     * All geografic lines for given city
+     * @param lineId (optional) if not null, only edges for a specific line are returned
+     * @param city  name of the selected city
+     * @return list with all lines of given city
+     */
     @GetMapping("/{city}/lines")
     public List<InputLineEdge> getLines(@RequestParam(required = false) String lineId, @PathVariable String city) {
         sanityCheckCity(city);
@@ -48,12 +63,24 @@ public class MainController {
         }
     }
 
+    /**
+     * returns entire grid graph for given city. Caution: Can be empty, if graph has not been calculated yet.
+     * @param city name of the selected city
+     * @return grid graph
+     */
     @GetMapping("/{city}/gridgraph")
     public GridGraph getGridGraph(@PathVariable String city) {
         sanityCheckCity(city);
         return octalinearGraphCalculator.getGridGraph(city);
     }
 
+    /**
+     * Calculates octilinear grid graph, or returns already calculated graph if city, grid size and r has not changed.
+     * @param city  name of the selected city
+     * @param gridSize distance in km between each grid vertex (width of a grid cell)
+     * @param distanceR search radius for source/target candidates
+     * @return list of grid edges for all paths on all lines.
+     */
     @GetMapping("/{city}/octilinear")
     public List<List<GridEdge>> getOctilinearGraph(@PathVariable String city, @RequestParam(required = false) double gridSize, @RequestParam(required = false) double distanceR) {
         sanityCheckCity(city);

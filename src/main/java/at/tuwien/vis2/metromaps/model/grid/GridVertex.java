@@ -4,6 +4,9 @@ import at.tuwien.vis2.metromaps.model.input.InputLine;
 
 import java.util.*;
 
+/**
+ * Represents a vertex on the grid graph. Each vertex is indexed and has coordinates.
+ */
 public class GridVertex {
 
     private String name;
@@ -22,6 +25,13 @@ public class GridVertex {
     private LinkedList<GridVertex> shortestPath;
 
 
+    /**
+     * Creates a grid vertex with index and position.
+     * @param name must be unique, mostly combination of x and y index
+     * @param indexX relative x position in the grid
+     * @param indexY relative y position in the grid
+     * @param coordinates absolute positon of the grid.
+     */
     public GridVertex(String name, int indexX, int indexY, double[] coordinates) {
         this.name = name;
         this.indexX = indexX;
@@ -30,21 +40,34 @@ public class GridVertex {
         this.takenLines = new HashMap<>();
     }
 
+    /**
+     *
+     * @return unique name of the grid
+     */
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    void setName(String name) {
         this.name = name;
     }
 
-    public int getIndexX() {
+    /**
+     *
+     * @return relative x position in grid
+     */
+    int getIndexX() {
         return indexX;
     }
 
-    public void setIndexX(int indexX) {
+    void setIndexX(int indexX) {
         this.indexX = indexX;
     }
+
+    /**
+     * relative y position in grid
+     * @return
+     */
 
     public int getIndexY() {
         return indexY;
@@ -54,34 +77,60 @@ public class GridVertex {
         this.indexY = indexY;
     }
 
-    public void setCoordinates(double[] coordinates) {
+    void setCoordinates(double[] coordinates) {
         this.coordinates = coordinates;
     }
 
+    /**
+     *
+     * @return absolute position (coordinates) of vertex
+     */
     public double[] getCoordinates() {
         return coordinates;
     }
-    public void setLabelCoordinates(double[] labelCoordinates) {
+    void setLabelCoordinates(double[] labelCoordinates) {
         this.labelCoordinates = labelCoordinates;
     }
-    public void setLabelRotation(int labelRotation) {
+    void setLabelRotation(int labelRotation) {
         this.labelRotation = labelRotation;
     }
 
+    /**
+     *
+     * @return absolute proposed position of the labels
+     */
     public double[] getLabelCoordinates() {
         return labelCoordinates;
     }
+
+    /**
+     *
+     * @return proposed rotation of the labels
+     */
     public int getLabelRotation() {
         return labelRotation;
     }
+
+    /**
+     *
+     * @return name of the station this grid vertex is associated, null if it is not part of a sink edge or not routed (yet)
+     */
     public String getStationName() {
         return stationName;
     }
 
+    /**
+     *
+     * @return true if this vertex has already been routed, false otherwise
+     */
     public boolean isTaken() {
         return isTaken;
     }
 
+    /**
+     * marks vertex as taken and sets the station name. This is used if the vertex is source or target of a routed path.
+     * @param stationName name of the source/target station.
+     */
     public void setTakenWith(String stationName) {
         isTaken = true;
         this.stationName = stationName;
@@ -100,6 +149,11 @@ public class GridVertex {
         return takenLines;
     }
 
+    /**
+     * marks a vertex as taken with the given line names
+     * @param lineNames
+     * @param lineName freshly routed line name
+     */
     public void setTakenLineNames(List<InputLine> lineNames, String lineName) {
         for (InputLine line : lineNames) {
             this.takenLines.putIfAbsent(line.getName(), false);
@@ -133,7 +187,7 @@ public class GridVertex {
         return super.toString();
     }
 
-    public boolean isClosedForLine(String lineName) {
+    boolean isClosedForLine(String lineName) {
         Boolean taken = takenLines.get(lineName);
         if (taken == null) {
             return true;
@@ -141,6 +195,10 @@ public class GridVertex {
         return taken;
     }
 
+    /**
+     *
+     * @return the shortest part from a source vertex to this vertex. Used when calculating dijskstra.
+     */
     LinkedList<GridVertex> getShortestPath() {
         if (shortestPath == null) {
             return new LinkedList<>();

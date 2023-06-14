@@ -6,6 +6,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * Implementation of dijkstra algorithm single source. The costs in this implementation are not fixed, but
+ * they change in each iteration, such that the bends of the routed path are minimized.
+ */
 public class OurDijkstra {
 
     private Set<GridVertex> settledVertices;
@@ -18,6 +22,17 @@ public class OurDijkstra {
 
     Logger logger = LoggerFactory.getLogger(OurDijkstra.class);
 
+    /**
+     * Finds the shortest path between a source and a target. The algorithm stores the shortest path to each vertex from the source vertex.
+     * Costs are recalculated depending on the costs of the previous settled edge. A settled edge is an edge that belongs to a
+     * shortest path from vertex a and vertex b. The angle between those two edges contributes to the overall costs.
+     * An edge cannot be routed twice, therefore all settled edges get cost inf.
+     * @param gridGraph
+     * @param source starting grid vertex
+     * @param target ending grid vertex. Algorithm terminates as soon as all possible paths to the target vertex are settled.
+     * @param comingFromEdge previous edge from the last routed path. Needed to minimize bend between last path segment and first segment of following path.
+     * @return shortest path containing edge list and vertex lists. Both lists are empty if no path found.
+     */
     public ShortestPath findShortestPathBetween(Graph<GridVertex, GridEdge> gridGraph, GridVertex source, GridVertex target, GridEdge comingFromEdge) {
         setAllDistancesToInfExceptSource(gridGraph, source);
         unsettledVertices.add(source);
@@ -97,7 +112,7 @@ public class OurDijkstra {
         source.setShortestPath(null);
     }
 
-    public void updateBendCosts(GridEdge incomingEdge, GridEdge outgoingEdge) {
+    private void updateBendCosts(GridEdge incomingEdge, GridEdge outgoingEdge) {
 
         if (incomingEdge == null) {
             outgoingEdge.updateCosts(GridEdge.BendCost.C_180);

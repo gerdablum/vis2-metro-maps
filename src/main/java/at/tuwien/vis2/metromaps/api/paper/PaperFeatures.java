@@ -9,6 +9,10 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class is to deserialize input data. It represents the original structure of the station and lines and should
+ * not be used for anything other than serializing/deserializing.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PaperFeatures {
     static Logger logger = LoggerFactory.getLogger(PaperFeatures.class);

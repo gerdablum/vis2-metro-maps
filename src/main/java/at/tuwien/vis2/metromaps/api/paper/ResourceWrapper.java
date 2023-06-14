@@ -9,6 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Wraps the information from the deserialized json information (PaperFeatures) to InputStation.
+ * Each city has their own resource wrapper.
+ */
 class ResourceWrapper {
     public Resource resource;
     public List<PaperFeatures.Feature> allPoints;

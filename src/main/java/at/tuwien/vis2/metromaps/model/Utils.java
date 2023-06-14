@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Useful methods for coordinate calculation/conversion
+ */
 public class Utils {
 
     public static final String vienna = "Vienna";
@@ -12,9 +15,18 @@ public class Utils {
     public static final String london = "London";
     public static final String stuttgart = "Stuttgart";
 
+    /**
+     * All city names for which we provide input data
+     */
     public static final List<String> allCities = Arrays.asList(vienna, berlin, freiburg, london, stuttgart);
 
 
+    /**
+     * Calculates distance in km between two points
+     * @param coordinatesRef lat/lon coordinates of first point
+     * @param coordinates lat/lon coordinates of second point
+     * @return distance in km
+     */
     public static double getDistanceInKmTo(double[] coordinatesRef, double[] coordinates) {
         double latRefRadian = Math.toRadians(coordinatesRef[0]);
         double lonRefRadian = Math.toRadians(coordinatesRef[1]);
@@ -32,6 +44,12 @@ public class Utils {
         return c * r;
     }
 
+    /**
+     * Convert ESPG3857 coordinates to lat/lon coordinates
+     * @param x coordinate in ESPG3857 format
+     * @param y coordinate in ESPG3857 format
+     * @return lat, lon in degrees
+     */
     public static double[] convertEspg3857ToLatLon(double x, double y) {
         x = (x * 180) / 20037508.34;
         y = (y * 180) / 20037508.34;
