@@ -117,6 +117,12 @@ function refreshMap() {
        labels.forEach(a => map.removeLayer(a));
     }
 
+    if (isLabelChecked && isOctiChecked) {
+        labels.forEach(a => a.addTo(map));
+    } else {
+        labels.forEach(a => map.removeLayer(a));
+    }
+
     if (isGeoChecked) {
         geoLines.forEach(a => a.addTo(map));
     } else {
