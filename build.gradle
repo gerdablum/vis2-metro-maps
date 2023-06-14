@@ -39,3 +39,11 @@ tasks.named('test') {
 javadoc {
 	destinationDir = file("${buildDir}/docs/javadoc")
 }
+
+jar {
+	enabled = true
+}
+
+bootJar {
+	classifier = 'exec'
+}
