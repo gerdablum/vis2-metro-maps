@@ -2,18 +2,33 @@
 https://github.com/gerdablum/vis2-metro-maps
 
 ## Overview
-Some important classes:
-* MetroDataProvider: reads json resource files and creates station and lineEdges from information
-* M10Service: implementation of MetroDataProvider for Vienna dataset
-* InputGraph: Represents stations in combination with lineEdges logically connected. Contains methods to sort edges and calculate bounding box as described in paper
-* GridGraph: Grid with set distance d based on bounding box of input graph. Contains method to map input lineEdges onto grid (not finished yet)
+As described in the paper "Metro Maps on Octilinear Grid Graphs" from Bast et al. (2020), our implementation is about mapping metro lines from cities onto a graph. Additionally, there are some constraints:
+* Strict octilinearity
+* Minimize line bends + small edge curves
+* Preserve original station position
 
-## current state
-At the moment we can read in a data set file and map the data from it exactly on an openstreet map.
-We are in the middle of implementing the octilinear graph algorithm. On frontend, you can see circle markes as the grid when you zoom in, as well as the original station positions.
+Overall, we have implemented the approximated, faster algorithm from the paper with a few deviations and enhancements. 
 
-## TBD
-* finish implementing approximate algorithm
-* include more cities in dataset
-* investigate adding labels
-* PDF export
+## Features
+* Map visualization options:
+  * choose a city (Vienna, Berlin, Freiburg, Suttgart)
+  * too edgy/inaccurate? Change the grid cell size and the distance of the node to its true location and improve your map)
+  * remove real world map (enjoy the graph without distractions)
+  * add real world map (compare the position of the station markers with their true location)
+  * show/remove the octilinear drawing (look at the real world lines or compare them with the octilinear graph)
+  * show/remove the geografic drawing  (look at the octilinear graph or compare it with the real world lines)
+  * display the station label or drop them
+  * zoom in or out (depending on the zoom level stations and labels are shown)
+* No equal distance between nodes to preserve true station position.
+
+## Enhancement
+* Labelling:
+  * every station has its own label position & rotation
+* PDF export possible:
+  * choose from the various display options and save or print the current map immediately!
+
+## Documentation
+JAVA Backend: see java_doc folder (htmls)
+
+Javascript Frontend: see javascript_doc folder (htmls)
+
