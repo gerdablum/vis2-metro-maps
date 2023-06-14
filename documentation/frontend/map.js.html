@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: map.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: map.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Instance of leaflet map, default view is Vienna, zoom level 13
+ */
+var map = L.map('map').setView([48.210033, 16.363449], 13);
+
+/**
+ * Container for all station markers. Displayed as white round circles in the drawing.
+ * @type {array}
+ */
+var stationMarker = [];
+
+/**
+ * Container for all grid markers, only needed to display the entire grid in debug mode.
+ * @type {array}
+ */
+var gridMarker = [];
+
+/**
+ * Container for all edges on the grid,  only needed to display the entire grid in debug mode.
+ * @type {array}
+ */
+var gridEdges = [];
+
+/**
+ * Container for polylines that display the original line routing in the map.
+ * @type {array}
+ */
+var geoLines = [];
+
+/**
+ * Container for routed octilinear paths through the gridgraph
+ * @type {array}
+ */
+var octiLines = [];
+/**
+ * Container for all station labels.
+ * @type {array}
+ */
+var labels = [];
+
+/**
+ * default grid size
+ * @type {number}
+ */
+var gridSize = 0.5;
+
+/**
+ * default search radius
+ * @type {number}
+ */
+var distanceR = 0.77;
+/**
+ * Leaflet layer that displays the map from open street map.
+ * @type {TileLayer}
+ */
+var mapLayer = null;
+
+/**
+ * Buttons to add print/export functionality.
+ *
+ */
+var browserControl = null;
+
+/**
+ * Currently selected city
+ * @type {string}
+ */
+var selectedCity = "Vienna";
+
+/**
+ * All prepared data sets with their initial locations for the map.
+ * @type {{stuttgart: {name: string, lon: number, zoom: number, lat: number}, freiburg: {name: string, lon: number, zoom: number, lat: number}, vienna: {name: string, lon: number, zoom: number, lat: number}, berlin: {name: string, lon: number, zoom: number, lat: number}}}
+ */
+var viewArray = {
+    vienna: { lat: 48.210033, lon: 16.363449, zoom: 13, name: "Vienna" },
+    berlin: { lat: 52.52437, lon: 13.41053, zoom: 13, name: "Berlin" },
+    freiburg: { lat: 47.997791, lon: 7.842609, zoom: 13, name: "Freiburg"},
+    stuttgart: { lat:  48.783333, lon:  9.183333, zoom: 13, name: "Stuttgart" }
+};
+
+/**
+ * Styling options for station markers.
+ * @type {{fillColor: string, color: string, fillOpacity: number}}
+ */
+var stationMarkerOptions = {
+    color: 'black',
+    fillColor: 'white',
+    fillOpacity: 1
+};
+debug = false;
+
+$( document ).ready(function() {
+    const removeMapButton = document.getElementById('removeMap-button');
+    removeMapButton.addEventListener('click', removeBackgroundMap);
+
+    const addMapButton = document.getElementById('addMap-button');
+    addMapButton.addEventListener('click', addMapLayer);
+
+    const showOctiButton = document.getElementById("show-octi-lines-button");
+    showOctiButton.addEventListener('click', refreshMap);
+    const showGeoButton = document.getElementById("show-geo-lines-button");
+    showGeoButton.addEventListener('click', refreshMap)
+    const showLabelButton = document.getElementById("show-labels-button");
+    showLabelButton.addEventListener('click', refreshMap)
+
+//toggleButtonState(addMapButton);
+    const dropdownButton = document.getElementById('dropdownMenuButton');
+    const dropdownItems = document.querySelectorAll('.dropdown-item');
+
+    dropdownItems.forEach(function(item) {
+        item.addEventListener('click', async function() {
+            const selectedText = item.textContent;
+            dropdownButton.textContent = selectedText;
+            selectedCity = item.dataset.value;
+            console.log("selected: " + selectedCity);
+            loadMap();
+        });
+    });
+
+    document.getElementById("changeGridCells").addEventListener("click", function() {
+        var gridSizeInput = parseFloat(document.getElementById("gridSize").value);
+        var distanceRInput = parseFloat(document.getElementById("distanceR").value);
+
+        console.log("Grid Size:", gridSizeInput);
+        console.log("Distance:", distanceRInput);
+
+        gridSize = gridSizeInput ? parseFloat(gridSizeInput) : null;
+        distanceR = distanceRInput ? parseFloat(distanceRInput) : null;
+        loadMap();
+    });
+
+    loadMap();
+});
+
+/**
+ * Loads and refreshes the map. Is initially called or when input data (e.g. city) has changed.
+ * Resets all containers and loads the grid as well as the octilinear graph from backend again.
+ */
+function loadMap() {
+    clearMap();
+    stationMarker = [];
+    labels = [];
+    gridMarker = [];
+    gridEdges = [];
+    geoLines = [];
+    octiLines = [];
+    if (mapLayer) {map.removeLayer(mapLayer);}
+    var cityData = viewArray[selectedCity];
+    if (cityData) { map.setView([cityData.lat, cityData.lon], cityData.zoom); }
+    var pdfOptions = {
+        title: 'Print me!',
+        documentTitle: 'Metro map of ' + cityData.name
+    };
+    if (!browserControl) {
+        browserControl = L.control.browserPrint(pdfOptions).addTo(map);
+    }
+    addMapLayer();
+    fetchOctilinear(cityData.name, refreshMap);
+    fetchData(cityData.name, refreshMap);
+    map.on("zoomend", function() {
+        zoomEffect();
+    });
+}
+
+/**
+ * Redraws the markes, lines and labels on the map, if control option buttons are clicked.
+ *
+ */
+function refreshMap() {
+
+    var isOctiChecked = $('#show-octi-lines-button').is(':checked');
+    var isGeoChecked = $('#show-geo-lines-button').is(':checked');
+    var isLabelChecked = $('#show-labels-button').is(':checked');
+    if (isOctiChecked) {
+        octiLines.forEach(a => a.addTo(map));
+    } else {
+       octiLines.forEach(a => map.removeLayer(a));
+       gridMarker.forEach(a => map.removeLayer(a));
+       labels.forEach(a => map.removeLayer(a));
+    }
+
+    if (isLabelChecked &amp;&amp; isOctiChecked) {
+        labels.forEach(a => a.addTo(map));
+    } else {
+        labels.forEach(a => map.removeLayer(a));
+    }
+
+    if (isGeoChecked) {
+        geoLines.forEach(a => a.addTo(map));
+    } else {
+        geoLines.forEach(a => map.removeLayer(a));
+    }
+    zoomEffect();
+}
+
+/**
+ * Called on every zoom. Handles appearing and disappearing of map detail markers (E.g. station markers and
+ * labels only appear on a higher zoom level)
+ */
+function zoomEffect() {
+    var isOctiChecked = $('#show-octi-lines-button').is(":checked")
+    var isLabelChecked = $('#show-labels-button').is(':checked');
+    var zoom = map.getZoom();
+    if (zoom > 12 &amp;&amp; stationMarker != null) {
+        if (isOctiChecked) {
+            //stationMarker.forEach(a => a.addTo(map));
+            if (zoom > 14 &amp;&amp; isLabelChecked) {
+                labels.forEach(a => a.addTo(map));
+            }
+            gridMarker.forEach(a => a.addTo(map));
+        }
+        gridEdges.forEach(a => a.addTo(map));
+        console.log("add details!");
+    }
+    if (zoom &lt;= 14) {
+        labels.forEach(a => map.removeLayer(a));
+    }
+    if (zoom &lt;= 12 &amp;&amp; stationMarker != null) {
+        stationMarker.forEach(a => map.removeLayer(a));
+        gridMarker.forEach(a => map.removeLayer(a));
+        gridEdges.forEach(a => map.removeLayer(a));
+        console.log("remove details!");
+    }
+}
+
+/**
+ * fetches the octilinear drawing from backend for a given city.
+ * It loads all polylines from the path into the octilines container.
+ * After processing is finished, callback is executed.
+ * @param cityName name of the selected city
+ * @param callback callback function
+ */
+function fetchOctilinear(cityName, callback) {
+    var url = '/' + encodeURIComponent(cityName) + '/octilinear';
+    url += '?gridSize=' + encodeURIComponent(gridSize);
+    url += '&amp;distanceR=' + encodeURIComponent(distanceR);
+    axios.get(url)
+        .then(function (response) {
+            gridEdges = [];
+            gridNode = [];
+            const colorLineMap = new Map();
+            for (let edge of response.data) {
+                for(let points of edge) {
+                     let colors = points.colors;
+                    for (let i = 0; i &lt; colors.length; i++) {
+                        let polyline = L.polyline([points.source.coordinates,
+                            points.destination.coordinates], {color: '#' + colors[i]});
+                        polyline.setOffset(i*3);
+                        octiLines.push(polyline)
+                    }
+
+                }
+            }
+            fetchGrid(cityName, callback)
+        })
+        .catch(function (error) {
+                // handle error
+                console.log(error);
+              })
+}
+
+/**
+ * Loads the grid from the backend. It fills the container with station markers and labels. If debug is enabled,
+ * all grid vertices and edges are loaded. After processing is finished, callback is executed.
+ * @param cityName name of the selected city
+ * @param callback callback function
+ */
+function fetchGrid(cityName, callback) {
+    axios.get('/' + cityName + '/gridgraph')          // ' + selectedCity + '
+        .then(function (response) {
+            console.log('URL:', response.config.url);
+            gridEdges = [];
+            if (debug) {
+                for (var gridEdge of response.data.edges) {
+                    var text = gridEdge.bendCost;
+                    gridEdges.push(L.polyline([gridEdge.source.coordinates,
+                        gridEdge.destination.coordinates], {color: 'grey', opacity: 0.5, weight: 10}).bindTooltip(text).openTooltip());
+                }
+            }
+            for (var gridNode of response.data.gridVertices) {
+                var text = gridNode.name + ", " + gridNode.stationName + ", " + gridNode.coordinates[0] + gridNode.coordinates[1];
+                if (gridNode.stationName !== null) {
+                    gridMarker.push(L.circleMarker(gridNode.coordinates,stationMarkerOptions).bindTooltip(text).openTooltip());
+                    var rotation = gridNode.labelRotation;
+                    var myIcon = L.divIcon({className: "rotated-labels", html: "&lt;div style='transform: rotate(" + rotation + "deg)'>" + gridNode.stationName + "&lt;/div>"});
+
+                    labels.push(L.marker(gridNode.labelCoordinates, {icon: myIcon}));
+                }
+                if (debug) {               // DEBUG
+                    color =  {color: 'blue'}
+                    gridMarker.push(L.circleMarker(gridNode.coordinates,color).bindTooltip(text).openTooltip());
+                }
+                callback();
+            }
+        })
+        .catch(function (error) {
+            // handle error
+            console.log(error);
+        })
+}
+
+/**
+ * Loads all the geografic inofrmation from backend: Original station positions and original lines.
+ * Stores them in the stationMarker container (only displayed on debug) and in the geoLines container.
+ * @param cityName name of the selected city
+ * @param callback callback function
+ */
+function fetchData(cityName, callback) {
+    console.log(cityName);
+    axios.all([
+        axios.get('/' + cityName + '/stations'),
+        axios.get('/' + cityName + '/lines')
+    ]).then(function (response) {
+        // handle success
+        stationMarker = [];
+        if (debug) {
+            for (var node of response[0].data) {
+                var text = node.name + " " + node.coordinates;
+                stationMarker.push(L.marker(node.coordinates).bindTooltip(text).openTooltip());
+            }
+        }
+        for (const node of response[1].data) {
+            for (const line of node.lines) {
+                let color = '#' + line.color;
+                var polyline = L.polyline(node.coordinates, {color: color});
+                geoLines.push(polyline)
+            }
+        }
+        callback();
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      })
+}
+
+/**
+ * Clears all markers and polylines on the map.
+ */
+function clearMap() {
+    stationMarker.forEach(marker => map.removeLayer(marker));
+    gridMarker.forEach(marker => map.removeLayer(marker));
+    gridEdges.forEach(edge => map.removeLayer(edge));
+    labels.forEach(label => map.removeLayer(label));
+    map.eachLayer(layer => {
+        if (layer instanceof L.Polyline) {
+            map.removeLayer(layer);
+        }
+    });
+    if (mapLayer) {
+        map.removeLayer(mapLayer);
+        mapLayer = null;
+    }
+}
+
+/**
+ * Adds or removes the map layer depending on the button state.
+ * @param button
+ */
+function toggleButtonState(button) {
+    var buttons = document.querySelectorAll('.btn-group-toggle .btn');
+    buttons.forEach(function(btn) {
+        console.log(btn.id);
+        btn.classList.remove('active');
+    });
+
+    var inputs = document.querySelectorAll('.btn-group-toggle input[type="radio"]');
+    inputs.forEach(function(input) {
+        input.removeAttribute('checked');
+    });
+
+    button.parentNode.classList.add('active');
+    button.checked = true;
+}
+
+/**
+ * Adds the map layer
+ */
+function addMapLayer() {
+    mapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&amp;copy; &lt;a href="http://www.openstreetmap.org/copyright">OpenStreetMap&lt;/a>'
+    }).addTo(map);
+    console.log("Add map!");
+    btn = document.getElementById('addMap-button');
+    toggleButtonState(btn);
+}
+
+/**
+ * removes the map layer
+ */
+function removeBackgroundMap() {
+    console.log("Remove background map!");
+    map.removeLayer(mapLayer);
+    btn = document.getElementById('removeMap-button');
+    toggleButtonState(btn);
+}
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addMapLayer">addMapLayer</a></li><li><a href="global.html#browserControl">browserControl</a></li><li><a href="global.html#clearMap">clearMap</a></li><li><a href="global.html#distanceR">distanceR</a></li><li><a href="global.html#fetchData">fetchData</a></li><li><a href="global.html#fetchGrid">fetchGrid</a></li><li><a href="global.html#fetchOctilinear">fetchOctilinear</a></li><li><a href="global.html#geoLines">geoLines</a></li><li><a href="global.html#gridEdges">gridEdges</a></li><li><a href="global.html#gridMarker">gridMarker</a></li><li><a href="global.html#gridSize">gridSize</a></li><li><a href="global.html#labels">labels</a></li><li><a href="global.html#loadMap">loadMap</a></li><li><a href="global.html#map">map</a></li><li><a href="global.html#mapLayer">mapLayer</a></li><li><a href="global.html#octiLines">octiLines</a></li><li><a href="global.html#refreshMap">refreshMap</a></li><li><a href="global.html#removeBackgroundMap">removeBackgroundMap</a></li><li><a href="global.html#selectedCity">selectedCity</a></li><li><a href="global.html#stationMarker">stationMarker</a></li><li><a href="global.html#stationMarkerOptions">stationMarkerOptions</a></li><li><a href="global.html#toggleButtonState">toggleButtonState</a></li><li><a href="global.html#viewArray">viewArray</a></li><li><a href="global.html#zoomEffect">zoomEffect</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Jun 14 2023 20:07:26 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

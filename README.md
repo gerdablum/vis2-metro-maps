@@ -1,5 +1,5 @@
 # Metro Maps
-https://github.com/gerdablum/vis2-metro-maps
+
 
 ## Overview
 As described in the paper "Metro Maps on Octilinear Grid Graphs" from Bast et al. (2020), our implementation is about mapping metro lines from cities onto a graph. Additionally, there are some constraints:
@@ -19,6 +19,7 @@ Overall, we have implemented the approximated, faster algorithm from the paper w
   * show/remove the geografic drawing  (look at the octilinear graph or compare it with the real world lines)
   * display the station label or drop them
   * zoom in or out (depending on the zoom level stations and labels are shown)
+* Octilinear graph is rendered in real-time.
 * No equal distance between nodes to preserve true station position.
 
 ## Enhancement
@@ -27,8 +28,13 @@ Overall, we have implemented the approximated, faster algorithm from the paper w
 * PDF export possible:
   * choose from the various display options and save or print the current map immediately!
 
-## Documentation
-JAVA Backend: see java_doc folder (htmls)
+## Documentation & Resources
 
-Javascript Frontend: see javascript_doc folder (htmls)
+* [Backend documentation](./documentation/backend/index.html)
+* [Frontend documentation](./documentation/frontend/index.html)
+*  [Application demo](http://82.165.59.25:3000/)
+*  [GitHub](https://github.com/gerdablum/vis2-metro-maps)
+
+
+
 

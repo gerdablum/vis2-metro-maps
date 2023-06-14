@@ -9,9 +9,6 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
 
 repositories {
-//	maven {
-//		url 'https://repo.osgeo.org/repository/release/'
-//	}
 	mavenCentral()
 }
 configurations {

@@ -1,32 +1,87 @@
-
+/**
+ * Instance of leaflet map, default view is Vienna, zoom level 13
+ */
 var map = L.map('map').setView([48.210033, 16.363449], 13);
+
+/**
+ * Container for all station markers. Displayed as white round circles in the drawing.
+ * @type {array}
+ */
 var stationMarker = [];
+
+/**
+ * Container for all grid markers, only needed to display the entire grid in debug mode.
+ * @type {array}
+ */
 var gridMarker = [];
+
+/**
+ * Container for all edges on the grid,  only needed to display the entire grid in debug mode.
+ * @type {array}
+ */
 var gridEdges = [];
+
+/**
+ * Container for polylines that display the original line routing in the map.
+ * @type {array}
+ */
 var geoLines = [];
+
+/**
+ * Container for routed octilinear paths through the gridgraph
+ * @type {array}
+ */
 var octiLines = [];
+/**
+ * Container for all station labels.
+ * @type {array}
+ */
 var labels = [];
+
+/**
+ * default grid size
+ * @type {number}
+ */
 var gridSize = 0.5;
+
+/**
+ * default search radius
+ * @type {number}
+ */
 var distanceR = 0.77;
+/**
+ * Leaflet layer that displays the map from open street map.
+ * @type {TileLayer}
+ */
 var mapLayer = null;
+
+/**
+ * Buttons to add print/export functionality.
+ *
+ */
 var browserControl = null;
-var selectedCity = "vienna";
+
+/**
+ * Currently selected city
+ * @type {string}
+ */
+var selectedCity = "Vienna";
+
+/**
+ * All prepared data sets with their initial locations for the map.
+ * @type {{stuttgart: {name: string, lon: number, zoom: number, lat: number}, freiburg: {name: string, lon: number, zoom: number, lat: number}, vienna: {name: string, lon: number, zoom: number, lat: number}, berlin: {name: string, lon: number, zoom: number, lat: number}}}
+ */
 var viewArray = {
     vienna: { lat: 48.210033, lon: 16.363449, zoom: 13, name: "Vienna" },
     berlin: { lat: 52.52437, lon: 13.41053, zoom: 13, name: "Berlin" },
     freiburg: { lat: 47.997791, lon: 7.842609, zoom: 13, name: "Freiburg"},
-    london: { lat: 51.507359, lon: -0.136439, zoom: 13, name: "London" },
     stuttgart: { lat:  48.783333, lon:  9.183333, zoom: 13, name: "Stuttgart" }
 };
 
-var labelOptions = {
-    className: 'leaflet-tooltip-own',
-    permanent: true,
-    direction: 'center',
-    opacity: 1,
-    interactive: false
-};
-
+/**
+ * Styling options for station markers.
+ * @type {{fillColor: string, color: string, fillOpacity: number}}
+ */
 var stationMarkerOptions = {
     color: 'black',
     fillColor: 'white',
@@ -77,7 +132,10 @@ $( document ).ready(function() {
     loadMap();
 });
 
-
+/**
+ * Loads and refreshes the map. Is initially called or when input data (e.g. city) has changed.
+ * Resets all containers and loads the grid as well as the octilinear graph from backend again.
+ */
 function loadMap() {
     clearMap();
     stationMarker = [];
@@ -104,6 +162,10 @@ function loadMap() {
     });
 }
 
+/**
+ * Redraws the markes, lines and labels on the map, if control option buttons are clicked.
+ *
+ */
 function refreshMap() {
 
     var isOctiChecked = $('#show-octi-lines-button').is(':checked');
@@ -131,6 +193,10 @@ function refreshMap() {
     zoomEffect();
 }
 
+/**
+ * Called on every zoom. Handles appearing and disappearing of map detail markers (E.g. station markers and
+ * labels only appear on a higher zoom level)
+ */
 function zoomEffect() {
     var isOctiChecked = $('#show-octi-lines-button').is(":checked")
     var isLabelChecked = $('#show-labels-button').is(':checked');
@@ -157,7 +223,13 @@ function zoomEffect() {
     }
 }
 
-
+/**
+ * fetches the octilinear drawing from backend for a given city.
+ * It loads all polylines from the path into the octilines container.
+ * After processing is finished, callback is executed.
+ * @param cityName name of the selected city
+ * @param callback callback function
+ */
 function fetchOctilinear(cityName, callback) {
     var url = '/' + encodeURIComponent(cityName) + '/octilinear';
     url += '?gridSize=' + encodeURIComponent(gridSize);
@@ -187,6 +259,12 @@ function fetchOctilinear(cityName, callback) {
               })
 }
 
+/**
+ * Loads the grid from the backend. It fills the container with station markers and labels. If debug is enabled,
+ * all grid vertices and edges are loaded. After processing is finished, callback is executed.
+ * @param cityName name of the selected city
+ * @param callback callback function
+ */
 function fetchGrid(cityName, callback) {
     axios.get('/' + cityName + '/gridgraph')          // ' + selectedCity + '
         .then(function (response) {
@@ -206,8 +284,6 @@ function fetchGrid(cityName, callback) {
                     var rotation = gridNode.labelRotation;
                     var myIcon = L.divIcon({className: "rotated-labels", html: "<div style='transform: rotate(" + rotation + "deg)'>" + gridNode.stationName + "</div>"});
 
-                    var customTooltip = L.tooltip(labelOptions);
-                    customTooltip.setContent(gridNode.stationName);
                     labels.push(L.marker(gridNode.labelCoordinates, {icon: myIcon}));
                 }
                 if (debug) {               // DEBUG
@@ -223,6 +299,12 @@ function fetchGrid(cityName, callback) {
         })
 }
 
+/**
+ * Loads all the geografic inofrmation from backend: Original station positions and original lines.
+ * Stores them in the stationMarker container (only displayed on debug) and in the geoLines container.
+ * @param cityName name of the selected city
+ * @param callback callback function
+ */
 function fetchData(cityName, callback) {
     console.log(cityName);
     axios.all([
@@ -252,6 +334,9 @@ function fetchData(cityName, callback) {
       })
 }
 
+/**
+ * Clears all markers and polylines on the map.
+ */
 function clearMap() {
     stationMarker.forEach(marker => map.removeLayer(marker));
     gridMarker.forEach(marker => map.removeLayer(marker));
@@ -268,6 +353,10 @@ function clearMap() {
     }
 }
 
+/**
+ * Adds or removes the map layer depending on the button state.
+ * @param button
+ */
 function toggleButtonState(button) {
     var buttons = document.querySelectorAll('.btn-group-toggle .btn');
     buttons.forEach(function(btn) {
@@ -284,6 +373,9 @@ function toggleButtonState(button) {
     button.checked = true;
 }
 
+/**
+ * Adds the map layer
+ */
 function addMapLayer() {
     mapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -293,6 +385,10 @@ function addMapLayer() {
     btn = document.getElementById('addMap-button');
     toggleButtonState(btn);
 }
+
+/**
+ * removes the map layer
+ */
 function removeBackgroundMap() {
     console.log("Remove background map!");
     map.removeLayer(mapLayer);
