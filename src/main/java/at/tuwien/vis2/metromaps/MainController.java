@@ -99,6 +99,13 @@ public class MainController {
         if (!(gridParameter instanceof Double)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Ungültiger Parameter: %s. Der Parameter muss vom Typ double sein.", gridParameter));
         }
+        else if (((Double) gridParameter) <= 0.1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("%s is too small.", gridParameter));
+        }
+
+        else if (((Double) gridParameter) > 5) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("%s is too large.", gridParameter));
+        }
     }
     private void sanityCheckLine(String lineId, String city) {
         List<String> allLineNames = metroDataProvider.getAllLineNames(city);

@@ -57,7 +57,7 @@ public class PaperMetroDataService implements MetroDataProvider {
         for (Map.Entry<String, ResourceWrapper> entry : resources.entrySet()) {
             ResourceWrapper wrapper = entry.getValue();
             try {
-                PaperFeatures subwayStations = objectMapper.readValue(wrapper.resource.getFile(), PaperFeatures.class);
+                PaperFeatures subwayStations = objectMapper.readValue(wrapper.resource.getInputStream(), PaperFeatures.class);
                 List<PaperFeatures.Feature> allPoints = Arrays.stream(subwayStations.getFeatures()).filter( a -> "Point".equals(a.getType())).toList();
                 List<PaperFeatures.Feature> allLines = Arrays.stream(subwayStations.getFeatures()).filter( a -> "LineString".equals(a.getType())).toList();
                 wrapper.allPoints = allPoints;
